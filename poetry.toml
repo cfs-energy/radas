@@ -1,0 +1,3 @@
+# Builds .venv in a subfolder of this directory
+[virtualenvs]
+in-project = true
