@@ -5,15 +5,12 @@ species: Carbon
 
 # Electron density (in m**-3)
 electron_density: 1.0E+19
-electron_density_units: "m**-3"
 
 # Neutral density (in m**-3)
 neutral_density: 0.0
-neutral_density_units: "m**-3"
 
-# Impurity density (in m**-3)
+# Impurity density (in m**-3), summed over all charge states
 impurity_density: 1.0E+17
-impurity_density_units: "m**-3"
 
 # Electron temperature (in eV)
 electron_temperature: [
@@ -30,5 +27,11 @@ electron_temperature: [
        1.20679264e+03, 1.52641797e+03, 1.93069773e+03, 2.44205309e+03,
        3.08884360e+03, 3.90693994e+03, 4.94171336e+03, 6.25055193e+03,
        7.90604321e+03, 1.00000000e+04]
-electron_temperature_units: "eV"
 
+# How long to run the time-integrator for (in s)
+evolution_start: 1.0E-8
+evolution_stop: 1.0E+2
+
+# Refuelling rate for evaluation (in s)
+# This is the "tau" in n_e * tau
+refuelling_rate: 1.0E-1
