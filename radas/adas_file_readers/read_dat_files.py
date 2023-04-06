@@ -1,9 +1,9 @@
 import numpy as np
 import xarray as xr
-from .adf11_dataset import ADF11Dataset, ADF11Codes, ADF11RateCoeffStoredUnits, ADF11RateCoeffDesiredUnits
-from .atomic_species import AtomicSpecies
-from .directories import dat_files_directory
-from .unit_handling import Quantity, ureg
+from ..named_options.adf11_dataset import ADF11Dataset, ADF11Codes, ADF11RateCoeffStoredUnits, ADF11RateCoeffDesiredUnits
+from ..named_options.atomic_species import AtomicSpecies
+from ..directories import dat_files_directory
+from ..unit_handling import Quantity, ureg
 
 try:
     from . import fortran_file_handling
@@ -156,17 +156,17 @@ def read_adf11_file(dataset: ADF11Dataset, species: AtomicSpecies):
     ds["charge"] = iz0
 
     electron_density = Quantity(10**ddens[:idmax], ureg.cm**-3).to(ureg.m**-3)
-    electron_temp = Quantity(10**dtev[:itmax], ureg.eV)
+    electron_temperature = Quantity(10**dtev[:itmax], ureg.eV)
     
     # Use logarithmic quantities to define the coordinates, so that we can interpolate over logarithmic quantities.
     ds["electron_density"] = \
-       xr.DataArray(electron_density, coords=dict(dim_log_electron_density=np.log10(electron_density.magnitude)))
-    ds["electron_temp"] = \
-       xr.DataArray(electron_temp, coords=dict(dim_log_electron_temp=np.log10(electron_temp.magnitude)))
+       xr.DataArray(electron_density, coords=dict(dim_electron_density=electron_density.magnitude))
+    ds["electron_temperature"] = \
+       xr.DataArray(electron_temperature, coords=dict(dim_electron_temperature=electron_temperature.magnitude))
 
     ds = ds.assign_attrs(
-        log_electron_density_units = "log10(n_e / m**-3)",
-        log_electron_temp_units = "log10(T_e / eV)"
+        reference_electron_density = Quantity(1.0, ureg.m**-3),
+        reference_electron_temperature = Quantity(1.0, ureg.eV),
     )
     
     ds['number_of_charge_states'] = ismax
@@ -180,7 +180,7 @@ def read_adf11_file(dataset: ADF11Dataset, species: AtomicSpecies):
     input_units = ADF11RateCoeffStoredUnits[dataset.name].value
     output_units = ADF11RateCoeffDesiredUnits[dataset.name].value
     ds["rate_coefficient"] = xr.DataArray(
-       coefficient, dims=("dim_charge_state", "dim_log_electron_temp", "dim_log_electron_density")
+       coefficient, dims=("dim_charge_state", "dim_electron_temperature", "dim_electron_density")
     ).pint.quantify(input_units).pint.to(output_units)
     
     return ds

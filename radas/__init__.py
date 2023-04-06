@@ -1,5 +1,5 @@
-from .adf11_dataset import ADF11Dataset
-from .atomic_species import AtomicSpecies
+from .named_options.adf11_dataset import ADF11Dataset
+from .named_options.atomic_species import AtomicSpecies
 from .directories import (
     module_directory,
     repository_directory,
@@ -7,4 +7,8 @@ from .directories import (
     adas_data_directory,
     dat_files_directory,
 )
-from .read_dat_files import read_adf11_file
+
+from . import (
+    computation,
+    named_options,
+)

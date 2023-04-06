@@ -7,48 +7,78 @@ dat_files:
     EffectiveIonisationCoefficients: 2012
     LineEmissionFromExcitation: 2012
     RecombinationAndBremsstrahlung: 2012
+    CXCrossCouplingCoefficients: 1996
+    ChargeExchangeEmission: 1996
+    MeanIonisationPotential: 1996
   Helium:
     EffectiveRecombinationCoefficients: 1996
     EffectiveIonisationCoefficients: 1996
     LineEmissionFromExcitation: 1996
     RecombinationAndBremsstrahlung: 1996
+    CXCrossCouplingCoefficients: 1996
+    ChargeExchangeEmission: 1996
+    MeanIonisationPotential: 1996
   Carbon:
     EffectiveRecombinationCoefficients: 1996
     EffectiveIonisationCoefficients: 1996
     LineEmissionFromExcitation: 1996
     RecombinationAndBremsstrahlung: 1996
+    CXCrossCouplingCoefficients: 1996
+    ChargeExchangeEmission: 1996
+    MeanIonisationPotential: 1996
   Nitrogen:
     EffectiveRecombinationCoefficients: 1996
     EffectiveIonisationCoefficients: 1996
     LineEmissionFromExcitation: 1996
     RecombinationAndBremsstrahlung: 1996
+    CXCrossCouplingCoefficients: 1996
+    ChargeExchangeEmission: 1996
+    MeanIonisationPotential: 1996
   Oxygen:
     EffectiveRecombinationCoefficients: 1996
     EffectiveIonisationCoefficients: 1996
     LineEmissionFromExcitation: 1996
     RecombinationAndBremsstrahlung: 1996
+    CXCrossCouplingCoefficients: 1989
+    ChargeExchangeEmission: 1989
+    MeanIonisationPotential: 1996
   Neon:
     EffectiveRecombinationCoefficients: 1996
     EffectiveIonisationCoefficients: 1996
     LineEmissionFromExcitation: 1996
     RecombinationAndBremsstrahlung: 1996
+    CXCrossCouplingCoefficients: 1989
+    ChargeExchangeEmission: 1989
+    MeanIonisationPotential: 1996
   Argon:
     EffectiveRecombinationCoefficients: 1989
     EffectiveIonisationCoefficients: 1989
     LineEmissionFromExcitation: 1989
     RecombinationAndBremsstrahlung: 1989
+    CXCrossCouplingCoefficients: 1989
+    ChargeExchangeEmission: 1989
+    MeanIonisationPotential: 1989
   Krypton:
     EffectiveRecombinationCoefficients: 1989
     EffectiveIonisationCoefficients: 1989
     LineEmissionFromExcitation: 1989
     RecombinationAndBremsstrahlung: 1989
+    CXCrossCouplingCoefficients: 1989
+    ChargeExchangeEmission: 1989
+    MeanIonisationPotential: 1989
   Xenon:
     EffectiveRecombinationCoefficients: 1989
     EffectiveIonisationCoefficients: 1989
     LineEmissionFromExcitation: 1989
     RecombinationAndBremsstrahlung: 1989
+    CXCrossCouplingCoefficients: 1989
+    ChargeExchangeEmission: 1989
+    MeanIonisationPotential: 1989
   Tungsten:
     EffectiveRecombinationCoefficients: 1989
     EffectiveIonisationCoefficients: 1989
     LineEmissionFromExcitation: 1989
     RecombinationAndBremsstrahlung: 1989
+    CXCrossCouplingCoefficients: 1989
+    ChargeExchangeEmission: 1989
+    MeanIonisationPotential: 1989

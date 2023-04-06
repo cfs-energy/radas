@@ -1,3 +1,4 @@
+#!.venv/bin/python
 from pathlib import Path
 import urllib.request
 import datetime
@@ -5,11 +6,9 @@ import yaml
 import shutil
 import subprocess
 
-from radas.adf11_dataset import ADF11Dataset
-from radas.atomic_species import AtomicSpecies
-from radas.directories import module_directory
-
-import radas
+from radas.named_options.adf11_dataset import ADF11Dataset
+from radas.named_options.atomic_species import AtomicSpecies
+from radas.directories import module_directory, environment_directory
 
 here = Path(__file__).parent
 url_base = "https://open.adas.ac.uk"
@@ -22,7 +21,7 @@ def download_adas_file(dataset: ADF11Dataset, species: AtomicSpecies, year: int)
 
     year_key = f"{year}"[-2:]
     dataset_key = f"{dataset.value.lower()}"
-    species_key = f"{species.value.lower()}"
+    species_key = f"{species.value[0].lower()}"
 
     output_filename = here / "dat_files" / f"{species.name}_{dataset.name}.dat"
 
@@ -81,7 +80,7 @@ def download_and_compile_adas_reader(reader: str) -> bool:
 
     compile_reader = lambda quiet: subprocess.run(
         [
-            str(radas.environment_directory / "bin" / "f2py"),
+            str(environment_directory / "bin" / "f2py"),
             "-c",
             str(here / "headers" / f"xxdata_{format_int}.pyf")
         ] + fortran_files + [
@@ -102,14 +101,14 @@ def download_and_compile_adas_reader(reader: str) -> bool:
     
     for file in Path().iterdir():
         if file.name.startswith(f"{reader}_reader"):
-            file.rename(module_directory / file.name)
+            file.rename(module_directory / "adas_file_readers" / file.name)
     
     return True
 
 def compile_file_handling_helper():
     compile_file_handling = lambda quiet: subprocess.run(
         [
-            str(radas.environment_directory / "bin" / "f2py"),
+            str(environment_directory / "bin" / "f2py"),
             "-c",
             str(here / "fortran_file_handling.f90"),
             "-m",
@@ -129,7 +128,7 @@ def compile_file_handling_helper():
     
     for file in Path().iterdir():
         if file.name.startswith(f"fortran_file_handling"):
-            file.replace(module_directory / file.name)
+            file.replace(module_directory / "adas_file_readers" / file.name)
 
 if __name__=="__main__":
     input_file = here / "data_to_fetch.yaml"
