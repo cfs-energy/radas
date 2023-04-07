@@ -34,4 +34,4 @@ evolution_stop: 1.0E+2
 
 # Refuelling rate for evaluation (in s)
 # This is the "tau" in n_e * tau
-refuelling_rate: 1.0E-1
+refuelling_time: [1.0E-2, 1.0E-1, 1.0E+0]

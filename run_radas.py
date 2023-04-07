@@ -24,9 +24,12 @@ def run_radas(case: str, show: bool):
     dataset["fractional_abundances"] = calculate_coronal_states.calculate_coronal_states(dataset)
     dataset["mean_charge_state"] = (dataset.fractional_abundances * dataset.dim_charge_state).sum(dim="dim_charge_state")
 
-    dataset["electron_emission_prefactor"] = calculate_radiation.calculate_electron_emission_prefactor(dataset)
+    dataset["coronal_electron_emission_prefactor"] = calculate_radiation.calculate_electron_emission_prefactor(dataset)
 
-    # dataset["impurity_density_evolution"] = calculate_derivatives.calculate_time_evolution(dataset)
+    dataset["impurity_density_evolution"] = calculate_derivatives.calculate_time_evolution(dataset)
+    dataset["impurity_density_at_equilibrium"] = dataset.impurity_density_evolution.isel(dim_time=-1)
+    dataset["noncoronal_electron_emission_prefactor"] = calculate_radiation.calculate_electron_emission_prefactor(dataset)
+
     # plotting.plot_time_evolution(dataset)
 
     # plotting.plot_fractional_abundances(dataset)

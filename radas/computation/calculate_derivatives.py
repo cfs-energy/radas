@@ -50,7 +50,7 @@ def calculate_time_evolution(dataset: xr.Dataset) -> xr.Dataset:
     """Evolve the system over time, and record the impurity density as a function of time."""
     evaluation_times = np.logspace(np.log10(dataset.evolution_start), np.log10(dataset.evolution_stop))
 
-    def _time_evolve(ionisation_rate_coeff, recombination_rate_coeff, electron_density, impurity_density, refuelling_rate):
+    def _time_evolve(ionisation_rate_coeff, recombination_rate_coeff, electron_density, impurity_density, refuelling_time):
         y = np.zeros_like(ionisation_rate_coeff)
         y[0] = impurity_density
 
@@ -59,7 +59,7 @@ def calculate_time_evolution(dataset: xr.Dataset) -> xr.Dataset:
             y0 = y,
             t_span=[evaluation_times[0], evaluation_times[-1]],
             t_eval=evaluation_times,
-            args = (ionisation_rate_coeff, recombination_rate_coeff, electron_density, refuelling_rate),
+            args = (ionisation_rate_coeff, recombination_rate_coeff, electron_density, refuelling_time),
             method="BDF",
         )
 
@@ -71,7 +71,7 @@ def calculate_time_evolution(dataset: xr.Dataset) -> xr.Dataset:
         dataset.recombination_rate_coeff,
         dataset.electron_density,
         dataset.impurity_density,
-        dataset.refuelling_rate,
+        dataset.refuelling_time,
         vectorize=True,
         input_core_dims=[("dim_charge_state",), ("dim_charge_state",), (), (), ()],
         output_core_dims=[("dim_charge_state", "dim_time")],
