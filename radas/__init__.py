@@ -7,6 +7,8 @@ from .directories import (
     adas_data_directory,
     dat_files_directory,
 )
+from .plotting import make_plots
+from .write_output import write_output
 
 from . import (
     computation,

@@ -1,48 +1,73 @@
 import matplotlib.pyplot as plt
 import xarray as xr
+import subprocess
+import sys
+from radas.directories import cases_directory
 
-def plot_charge_state_fraction(dataset: xr.Dataset):
-    fig, ax = plt.subplots()
-    dataset.charge_state_fraction.plot(ax=ax)
-    ax.set_xscale("log")
+def get_git_revision_short_hash() -> str:
+    return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()
 
-def plot_charge_states(dataset: xr.Dataset):
-    fig, ax = plt.subplots()
+def make_plots(dataset: xr.Dataset, key: str, plot_params: dict, figsize, show_dpi, save_dpi):
+    """Make a plot using the data from dataset as specified in the "plot" dictionary."""
 
-    for Z in range(dataset.atomic_number+1):
-        dataset.charge_state_fraction.sel(dim_charge_state=Z).plot(ax=ax, label=Z)
+    if plot_params["type"] == "skip": return
 
-    ax.set_xscale("log")
-    ax.legend()
-    ax.grid()
+    fig, ax = plt.subplots(figsize=figsize, dpi=show_dpi,
+                            nrows=plot_params.get("nrows", 1), ncols=plot_params.get("ncols", 1), sharex=True, sharey=True)
 
-def plot_mean_charge_state(dataset: xr.Dataset):
-    fig, ax = plt.subplots()
-    dataset.mean_charge_state.plot(ax=ax)
-    ax.set_xscale("log")
+    ds_slice = dataset
+    for variable, variable_slice in plot_params.get("slice", {}).items():
+        ds_slice = ds_slice.sel({f"dim_{variable}": variable_slice}, method="nearest")
 
-def plot_electron_emission_prefactor(electron_emission_prefactor: xr.DataArray):
-    
-    fig, ax = plt.subplots()
-    if "dim_refuelling_time" in electron_emission_prefactor.dims:
-        for i in range(electron_emission_prefactor.sizes["dim_refuelling_time"]):
-            electron_emission_prefactor.isel(dim_refuelling_time=i).plot(ax=ax)
+    if plot_params["type"] == "xrplot2d":
+        make_xrplot2d(ds_slice, plot_params, fig, ax)
+    elif plot_params["type"] == "xrplot1d":
+        make_xrplot1d(ds_slice, plot_params, fig, ax)
     else:
-        electron_emission_prefactor.plot(ax=ax)
+        raise NotImplementedError(f"No implementation for plot type {plot_params['type']}")
 
-    ax.set_yscale("log")
-    ax.set_xscale("log")
+    ax.set_xscale(plot_params.get("xscale", "linear"))
+    ax.set_yscale(plot_params.get("yscale", "linear"))
+    ax.set_xlabel(plot_params.get("xlabel", ""))
+    ax.set_ylabel(plot_params.get("ylabel", ""))
+    ax.set_title(f"{plot_params.get('title', '')} [{get_git_revision_short_hash()}]")
+    if plot_params.get("legend", False):
+        ax.legend()
+    if plot_params.get("grid", False):
+        ax.grid()
 
-def plot_time_evolution(dataset: xr.Dataset):
+    save_name = f"{key}_{get_git_revision_short_hash()}" if plot_params.get("include_git_hash_in_name", False) else key
+    if not "pytest" in sys.modules: #skip saving output if running tests
+        plt.savefig(cases_directory / dataset.case / "output" / save_name, dpi=save_dpi, bbox_inches="tight")
+
+    if not plot_params["show"]:
+        plt.close(fig)
+
+def make_xrplot2d(dataset, plot_params, fig, ax):
+
+    im = dataset[plot_params["variable"]].plot(ax=ax, add_colorbar=False, add_labels=False)
+    cbar = fig.colorbar(im, ax=ax)
+
+def make_xrplot1d(dataset, plot_params, fig, ax):
     
-    point = dataset.sel(dim_electron_temperature=50.0, dim_electron_density=1e19, method="nearest")
+    if "iterate_over" in plot_params:
+        iteration_dim = plot_params["iterate_over"]
+        in_legend = plot_params.get("in_legend", "none")
+        for i in range(dataset.sizes[iteration_dim]):
+            if in_legend == "none":
+                legend_val = ""
+            elif in_legend == "value":
+                legend_val = dataset[iteration_dim].isel({iteration_dim: i}).values
+            elif in_legend == "index":
+                legend_val = i
+            else:
+                if in_legend in dataset:
+                    legend_val = dataset[in_legend].isel({iteration_dim: i}).values
+                else:
+                    raise NotImplementedError(f"'in_legend' should be one of 'none', 'value', 'index' or a dataset variable, but was '{in_legend}'")
 
-    fig, ax = plt.subplots()
-    for z in range(dataset.atomic_number+1):
-        label=f"${dataset.species.value[0]}^{{{z}{'+' if z>0 else ''}}}$"
-        point.charge_state_fraction_evolution.sel(dim_charge_state=z).plot(ax=ax, label=label)
-    ax.set_xscale("log")
+            label = plot_params.get("legend_base", "#").replace("#", str(legend_val))
 
-    ax.legend()
-    ax.set_title(f"Charge state ({dataset.species.name}, $T_e=50eV, n_e=10^{{19}}m^{{-3}}$)")
-    ax.set_xlabel("Time after injection [$s$]")
+            dataset[plot_params["variable"]].isel({iteration_dim: i}).plot(ax=ax, label=label)
+    else:
+        dataset[plot_params["variable"]].plot(ax=ax)

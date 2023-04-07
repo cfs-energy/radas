@@ -33,20 +33,90 @@ evolution_stop: 1.0E+2
 # This is the "tau" in n_e * tau
 refuelling_time: [1.0E-2, 1.0E-1, 1.0E+0, .inf]
 
-plotting:
+file_output:
+  netcdf: True
 
+plotting:
+  figsize: [6, 4]
+  show_dpi: 150
+  save_dpi: 300
+
+  coronal_charge_state_fraction_2d:
+
+    type: xrplot2d
+    variable: coronal_charge_state_fraction
+
+    xscale: "log"
+    xlabel: "$T_e [eV]$"
+    ylabel: "Charge state fraction"
+    title: "Carbon coronal charge-station-fraction"
+    
+    show: False
+  
+  coronal_charge_state_fraction_1d:
+
+    type: xrplot1d
+    variable: coronal_charge_state_fraction
+    iterate_over: dim_charge_state
+    legend_base: "$C^{#}$"
+    in_legend: value
+
+    xscale: "log"
+    xlabel: "$T_e [eV]$"
+    ylabel: "Charge state fraction"
+    title: "Carbon coronal charge-station-fraction"
+    
+    show: False
+    legend: True
+    grid: True
+  
+  mean_charge_state:
+
+    type: xrplot1d
+    variable: mean_charge_state
+
+    xscale: "log"
+    xlabel: "$T_e [eV]$"
+    ylabel: "Mean charge state"
+    title: "Carbon coronal mean charge state"
+    
+    show: False
+    grid: True
+
+  electron_emission_prefactor:
+
+    type: xrplot1d
+    variable: noncoronal_electron_emission_prefactor
+    iterate_over: dim_refuelling_time
+    legend_base: "$n_e \\tau = #$"
+    in_legend: ne_tau
+
+    xscale: log
+    yscale: log
+    xlabel: "$T_e [eV]$"
+    ylabel: "$L_z$ emission factor [$W m^3$]"
+    title: "Carbon non-coronal radiation factors"
+    
+    show: False
+    legend: True
+    grid: True
+  
   time_evolution:
 
-    type: time_evolution
+    type: xrplot1d
+    variable: charge_state_fraction_evolution
+    iterate_over: dim_charge_state
+    legend_base: "$C^{#}$"
+    in_legend: value
 
-    show: True
-    save: True
+    xscale: log
+    xlabel: "$T_e [eV]$"
+    title: "Charge-station-fraction without refuelling"
+    xlabel: "Time after injection [$s$]"
+    ylabel: "Charge state fraction"
 
-    figsize: [6, 4]
-    show_dpi: 150
-    save_dpi: 300
 
-    point:
+    slice:
       # Electron temperature to plot (in eV)
       electron_temperature: 50.0
       # Electron density to plot (in eV)
@@ -54,3 +124,6 @@ plotting:
       # Refuelling time to plot (in eV)
       refuelling_time: .inf
     
+    show: True
+    legend: True
+    grid: True

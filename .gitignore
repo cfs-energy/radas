@@ -163,3 +163,4 @@ cython_debug/
 **/*.cpython-39-darwin.so
 adas_data/dat_files/*.dat
 adas_data/source_files/*
+cases/**/output/*
