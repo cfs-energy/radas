@@ -1,5 +1,5 @@
 # Species to perform analysis for
-species: Carbon
+species: Neon
 
 # Electron density (in m**-3)
 electron_density: 1.0E+19
@@ -47,7 +47,7 @@ plotting:
     xscale: "log"
     xlabel: "$T_e [eV]$"
     ylabel: "Charge state fraction"
-    title: "Carbon coronal charge-station-fraction"
+    title: "Neon coronal charge-station-fraction"
     
     show: False
   
@@ -56,13 +56,13 @@ plotting:
     type: xrplot1d
     variable: coronal_charge_state_fraction
     iterate_over: dim_charge_state
-    legend_base: "$C^{#}$"
+    legend_base: "$Ne^{#}$"
     in_legend: value
 
     xscale: "log"
     xlabel: "$T_e [eV]$"
     ylabel: "Charge state fraction"
-    title: "Carbon coronal charge-station-fraction"
+    title: "Neon coronal charge-station-fraction"
     
     show: False
     legend: True
@@ -76,7 +76,7 @@ plotting:
     xscale: "log"
     xlabel: "$T_e [eV]$"
     ylabel: "Mean charge state"
-    title: "Carbon coronal mean charge state"
+    title: "Neon coronal mean charge state"
     
     show: False
     grid: True
@@ -93,7 +93,7 @@ plotting:
     yscale: log
     xlabel: "$T_e [eV]$"
     ylabel: "$L_z$ emission factor [$W m^3$]"
-    title: "Carbon non-coronal radiation factors"
+    title: "Neon non-coronal radiation factors"
     
     show: False
     legend: True
@@ -104,7 +104,7 @@ plotting:
     type: xrplot1d
     variable: charge_state_fraction_evolution
     iterate_over: dim_charge_state
-    legend_base: "$C^{#}$"
+    legend_base: "$Ne^{#}$"
     in_legend: value
 
     xscale: log
