@@ -27,7 +27,7 @@ def run_radas(case: str, show: bool):
     dataset["mean_charge_state"] = (dataset.coronal_charge_state_fraction * dataset.dim_charge_state).sum(dim="dim_charge_state")
     dataset["coronal_electron_emission_prefactor"] = calculate_radiation.calculate_electron_emission_prefactor(dataset, dataset.coronal_charge_state_fraction)
 
-    dataset["ne_tau"] = (dataset.electron_density * dataset.refuelling_time).pint.to(ureg.m**-3 * ureg.s)
+    dataset["ne_tau"] = (dataset.electron_density * dataset.residence_time).pint.to(ureg.m**-3 * ureg.s)
     dataset["charge_state_fraction_evolution"] = calculate_derivatives.calculate_time_evolution(dataset)
     dataset["charge_state_fraction_at_equilibrium"] = dataset.charge_state_fraction_evolution.isel(dim_time=-1)
     dataset["noncoronal_electron_emission_prefactor"] = calculate_radiation.calculate_electron_emission_prefactor(dataset, dataset.charge_state_fraction_at_equilibrium)

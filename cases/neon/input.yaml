@@ -29,7 +29,7 @@ evolution_stop: 1.0E+2
 
 # Refuelling rate for evaluation (in s)
 # This is the "tau" in n_e * tau
-refuelling_time: [1.0E-2, 1.0E-1, 1.0E+0, .inf]
+residence_time: [1.0E-2, 1.0E-1, 1.0E+0, .inf]
 
 file_output:
   netcdf: True
@@ -64,7 +64,7 @@ plotting:
     ylabel: "Charge state fraction"
     title: "Neon coronal charge-station-fraction"
     
-    show: False
+    show: True
     legend: True
     grid: True
   
@@ -78,14 +78,14 @@ plotting:
     ylabel: "Mean charge state"
     title: "Neon coronal mean charge state"
     
-    show: False
+    show: True
     grid: True
 
   electron_emission_prefactor:
 
     type: xrplot1d
     variable: noncoronal_electron_emission_prefactor
-    iterate_over: dim_refuelling_time
+    iterate_over: dim_residence_time
     legend_base: "$n_e \\tau = #$"
     in_legend: ne_tau
 
@@ -95,7 +95,7 @@ plotting:
     ylabel: "$L_z$ emission factor [$W m^3$]"
     title: "Neon non-coronal radiation factors"
     
-    show: False
+    show: True
     legend: True
     grid: True
   
@@ -120,7 +120,7 @@ plotting:
       # Electron density to plot (in eV)
       electron_density: 1.0e+19
       # Refuelling time to plot (in eV)
-      refuelling_time: .inf
+      residence_time: .inf
     
     show: True
     legend: True

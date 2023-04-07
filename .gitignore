@@ -164,3 +164,4 @@ cython_debug/
 adas_data/dat_files/*.dat
 adas_data/source_files/*
 cases/**/output/*
+test.ipynb

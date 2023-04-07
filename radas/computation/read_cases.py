@@ -50,16 +50,16 @@ def read_case(case: str) -> xr.Dataset:
         electron_density="m**-3",
         neutral_density="m**-3",
         electron_temperature="eV",
-        refuelling_time="s",
+        residence_time="s",
     )
 
     attrs = dict()
     for key, value in parameters.items():
-        if key in ["electron_density", "neutral_density", "electron_temperature", "refuelling_time"]:
+        if key in ["electron_density", "neutral_density", "electron_temperature", "residence_time"]:
             value = Quantity(np.atleast_1d(value), units[key])
             ds[key] = xr.DataArray(value, coords={f"dim_{key}": value.magnitude})
         
-        elif key in ["electron_density_units", "neutral_density_units", "electron_temperature_units", "refuelling_time_units"]:
+        elif key in ["electron_density_units", "neutral_density_units", "electron_temperature_units", "residence_time_units"]:
             continue
 
         elif isinstance(value, Number):
