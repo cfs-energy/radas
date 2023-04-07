@@ -80,7 +80,9 @@ def download_and_compile_adas_reader(reader: str) -> bool:
 
     compile_reader = lambda quiet: subprocess.run(
         [
-            str(environment_directory / "bin" / "f2py"),
+            str(environment_directory / "bin" / "python"),
+            "-m",
+            "numpy.f2py",
             "-c",
             str(here / "headers" / f"xxdata_{format_int}.pyf")
         ] + fortran_files + [
@@ -108,7 +110,9 @@ def download_and_compile_adas_reader(reader: str) -> bool:
 def compile_file_handling_helper():
     compile_file_handling = lambda quiet: subprocess.run(
         [
-            str(environment_directory / "bin" / "f2py"),
+            str(environment_directory / "bin" / "python"),
+            "-m",
+            "numpy.f2py",
             "-c",
             str(here / "fortran_file_handling.f90"),
             "-m",
