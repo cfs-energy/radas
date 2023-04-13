@@ -1,5 +1,5 @@
 # Species to perform analysis for
-species: Neon
+species: Argon
 
 # Electron density (in m**-3)
 electron_density: [1.0E+19, 1.0E+20]
@@ -75,7 +75,7 @@ plotting:
     xscale: "log"
     xlabel: "$T_e [eV]$"
     ylabel: "Charge state fraction"
-    title: "Neon coronal charge-station-fraction"
+    title: "Argon coronal charge-station-fraction"
     
     show: False
   
@@ -84,7 +84,7 @@ plotting:
     type: xrplot1d
     variable: coronal_charge_state_fraction
     iterate_over: dim_charge_state
-    legend_base: "$Ne^{#}$"
+    legend_base: "$Ar^{#}$"
     in_legend: value
     
     slice:
@@ -94,7 +94,7 @@ plotting:
     xscale: "log"
     xlabel: "$T_e [eV]$"
     ylabel: "Charge state fraction"
-    title: "Neon coronal charge-station-fraction"
+    title: "Argon coronal charge-station-fraction"
     
     show: True
     legend: True
@@ -112,7 +112,7 @@ plotting:
     xscale: "log"
     xlabel: "$T_e [eV]$"
     ylabel: "Mean charge state"
-    title: "Neon coronal mean charge state"
+    title: "Argon coronal mean charge state"
     
     show: True
     grid: True
@@ -133,7 +133,7 @@ plotting:
     yscale: log
     xlabel: "$T_e [eV]$"
     ylabel: "$L_z$ emission factor [$W m^3$]"
-    title: "Neon non-coronal radiation factors"
+    title: "Argon non-coronal radiation factors"
     
     show: True
     legend: True
@@ -144,7 +144,7 @@ plotting:
     type: xrplot1d
     variable: charge_state_fraction_evolution
     iterate_over: dim_charge_state
-    legend_base: "$Ne^{#}$"
+    legend_base: "$Ar^{#}$"
     in_legend: value
 
     xscale: log

@@ -2,26 +2,50 @@
 species: Carbon
 
 # Electron density (in m**-3)
-electron_density: 1.0E+19
+electron_density: [1.0E+19, 1.0E+20]
 
 # Neutral density (in m**-3)
 neutral_density: 0.0
 
 # Electron temperature (in eV)
-electron_temperature: [
-       1.00000000e-01, 1.26485522e-01, 1.59985872e-01, 2.02358965e-01,
-       2.55954792e-01, 3.23745754e-01, 4.09491506e-01, 5.17947468e-01,
-       6.55128557e-01, 8.28642773e-01, 1.04811313e+00, 1.32571137e+00,
-       1.67683294e+00, 2.12095089e+00, 2.68269580e+00, 3.39322177e+00,
-       4.29193426e+00, 5.42867544e+00, 6.86648845e+00, 8.68511374e+00,
-       1.09854114e+01, 1.38949549e+01, 1.75751062e+01, 2.22299648e+01,
-       2.81176870e+01, 3.55648031e+01, 4.49843267e+01, 5.68986603e+01,
-       7.19685673e+01, 9.10298178e+01, 1.15139540e+02, 1.45634848e+02,
-       1.84206997e+02, 2.32995181e+02, 2.94705170e+02, 3.72759372e+02,
-       4.71486636e+02, 5.96362332e+02, 7.54312006e+02, 9.54095476e+02,
-       1.20679264e+03, 1.52641797e+03, 1.93069773e+03, 2.44205309e+03,
-       3.08884360e+03, 3.90693994e+03, 4.94171336e+03, 6.25055193e+03,
-       7.90604321e+03, 1.00000000e+04]
+electron_temperature: [1.00000000e-01, 1.11424288e-01, 1.24153719e-01, 1.38337396e-01,
+       1.54141458e-01, 1.71751022e-01, 1.91372352e-01, 2.13235280e-01,
+       2.37595891e-01, 2.64739529e-01, 2.94984134e-01, 3.28683970e-01,
+       3.66233771e-01, 4.08073370e-01, 4.54692846e-01, 5.06638264e-01,
+       5.64518076e-01, 6.29010244e-01, 7.00870182e-01, 7.80939607e-01,
+       8.70156393e-01, 9.69565562e-01, 1.08033152e+00, 1.20375170e+00,
+       1.34127175e+00, 1.49450249e+00, 1.66523876e+00, 1.85548042e+00,
+       2.06745584e+00, 2.30364794e+00, 2.56682330e+00, 2.86006458e+00,
+       3.18680658e+00, 3.55087652e+00, 3.95653887e+00, 4.40854524e+00,
+       4.91219013e+00, 5.47337285e+00, 6.09866670e+00, 6.79539592e+00,
+       7.57172149e+00, 8.43673672e+00, 9.40057378e+00, 1.04745224e+01,
+       1.16711619e+01, 1.30045090e+01, 1.44901815e+01, 1.61455815e+01,
+       1.79900992e+01, 2.00453398e+01, 2.23353771e+01, 2.48870348e+01,
+       2.77302012e+01, 3.08981791e+01, 3.44280759e+01, 3.83612383e+01,
+       4.27437364e+01, 4.76269038e+01, 5.30679382e+01, 5.91305720e+01,
+       6.58858186e+01, 7.34128040e+01, 8.17996938e+01, 9.11447260e+01,
+       1.01557362e+02, 1.13159567e+02, 1.26087241e+02, 1.40491810e+02,
+       1.56541998e+02, 1.74425806e+02, 1.94352711e+02, 2.16556124e+02,
+       2.41296118e+02, 2.68862481e+02, 2.99578103e+02, 3.33802767e+02,
+       3.71937355e+02, 4.14428548e+02, 4.61774057e+02, 5.14528453e+02,
+       5.73309663e+02, 6.38806207e+02, 7.11785265e+02, 7.93101660e+02,
+       8.83707874e+02, 9.84665203e+02, 1.09715619e+03, 1.22249846e+03,
+       1.36216020e+03, 1.51777730e+03, 1.69117254e+03, 1.88437696e+03,
+       2.09965360e+03, 2.33952406e+03, 2.60679802e+03, 2.90460612e+03,
+       3.23643668e+03, 3.60617651e+03, 4.01815648e+03, 4.47720223e+03,
+       4.98869069e+03, 5.55861305e+03, 6.19364499e+03, 6.90122480e+03,
+       7.68964057e+03, 8.56812721e+03, 9.54697470e+03, 1.06376485e+04,
+       1.18529241e+04, 1.32070362e+04, 1.47158460e+04, 1.63970266e+04,
+       1.82702700e+04, 2.03575182e+04, 2.26832196e+04, 2.52746159e+04,
+       2.81620607e+04, 3.13793754e+04, 3.49642455e+04, 3.89586614e+04,
+       4.34094109e+04, 4.83686269e+04, 5.38943979e+04, 6.00514488e+04,
+       6.69118990e+04, 7.45561067e+04, 8.30736107e+04, 9.25641789e+04,
+       1.03138977e+05, 1.14921870e+05, 1.28050875e+05, 1.42679775e+05,
+       1.58979923e+05, 1.77142246e+05, 1.97379486e+05, 2.19928686e+05,
+       2.45053971e+05, 2.73049642e+05, 3.04243618e+05, 3.39001283e+05,
+       3.77729765e+05, 4.20882699e+05, 4.68965549e+05, 5.22541521e+05,
+       5.82238167e+05, 6.48754729e+05, 7.22870335e+05, 8.05453121e+05,
+       8.97470401e+05, 1.00000000e+06]
 
 # How long to run the time-integrator for (in s)
 evolution_start: 1.0E-8
@@ -29,7 +53,7 @@ evolution_stop: 1.0E+2
 
 # Refuelling rate for evaluation (in s)
 # This is the "tau" in n_e * tau
-residence_time: [1.0E-2, 1.0E-1, 1.0E+0, .inf]
+residence_time: [1.e-04, 1.e-03, 1.e-02, 1.e-01, 1.e+00]
 
 file_output:
   netcdf: True
@@ -43,6 +67,10 @@ plotting:
 
     type: xrplot2d
     variable: coronal_charge_state_fraction
+
+    slice:
+      # Electron density to plot (in m^-3)
+      electron_density: 1.0e+19
 
     xscale: "log"
     xlabel: "$T_e [eV]$"
@@ -58,13 +86,17 @@ plotting:
     iterate_over: dim_charge_state
     legend_base: "$C^{#}$"
     in_legend: value
+    
+    slice:
+      # Electron density to plot (in m^-3)
+      electron_density: 1.0e+19
 
     xscale: "log"
     xlabel: "$T_e [eV]$"
     ylabel: "Charge state fraction"
     title: "Carbon coronal charge-station-fraction"
     
-    show: False
+    show: True
     legend: True
     grid: True
   
@@ -73,12 +105,16 @@ plotting:
     type: xrplot1d
     variable: mean_charge_state
 
+    slice:
+      # Electron density to plot (in m^-3)
+      electron_density: 1.0e+19
+
     xscale: "log"
     xlabel: "$T_e [eV]$"
     ylabel: "Mean charge state"
     title: "Carbon coronal mean charge state"
     
-    show: False
+    show: True
     grid: True
 
   electron_emission_prefactor:
@@ -89,13 +125,17 @@ plotting:
     legend_base: "$n_e \\tau = #$"
     in_legend: ne_tau
 
+    slice:
+      # Electron density to plot (in m^-3)
+      electron_density: 1.0e+19
+
     xscale: log
     yscale: log
     xlabel: "$T_e [eV]$"
     ylabel: "$L_z$ emission factor [$W m^3$]"
     title: "Carbon non-coronal radiation factors"
     
-    show: False
+    show: True
     legend: True
     grid: True
   
@@ -117,9 +157,9 @@ plotting:
     slice:
       # Electron temperature to plot (in eV)
       electron_temperature: 50.0
-      # Electron density to plot (in eV)
+      # Electron density to plot (in m^-3)
       electron_density: 1.0e+19
-      # Refuelling time to plot (in eV)
+      # Refuelling time to plot (in s)
       residence_time: .inf
     
     show: True
