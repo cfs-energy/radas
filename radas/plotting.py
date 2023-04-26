@@ -65,8 +65,9 @@ def make_xrplot1d(dataset, plot_params, fig, ax):
                     legend_val = dataset[in_legend].isel({iteration_dim: i}).values
                 else:
                     raise NotImplementedError(f"'in_legend' should be one of 'none', 'value', 'index' or a dataset variable, but was '{in_legend}'")
-
-            label = plot_params.get("legend_base", "#").replace("#", str(legend_val))
+            
+            legend_format = plot_params.get("legend_format", "4.3g")
+            label = plot_params.get("legend_base", "#").replace("#", f"{legend_val:{legend_format}}")
 
             dataset[plot_params["variable"]].isel({iteration_dim: i}).plot(ax=ax, label=label)
     else:
