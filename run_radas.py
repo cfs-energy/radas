@@ -15,9 +15,21 @@ from radas.directories import cases_directory
 from radas.unit_handling import ureg
 
 @click.command()
-@click.argument("case", type=click.Choice(read_cases.list_cases()))
+@click.argument("case", type=click.Choice(read_cases.list_cases() + ["all"]))
 @click.option("--show", is_flag=True, help="Display an interactive figure of the result")
 def run_radas(case: str, show: bool):
+
+    if case == "all":
+        for case in read_cases.list_cases():
+            print(f"Running {case}")
+            run_radas_for_case(case)
+    else:
+        run_radas_for_case(case)
+
+    if show:
+        plt.show()
+
+def run_radas_for_case(case: str):
     dataset, plots, file_output = read_cases.read_case(case)
 
     dataset = read_cases.convert_enums_for_parameters(dataset)
@@ -41,8 +53,5 @@ def run_radas(case: str, show: bool):
     for key, plot in plots.items():
         make_plots(dataset, key, plot, figsize, show_dpi, save_dpi)
     
-    if show:
-        plt.show()
-
 if __name__=="__main__":
     run_radas()

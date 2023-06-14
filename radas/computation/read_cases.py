@@ -32,20 +32,17 @@ def list_cases() -> list[str]:
         if (path.is_dir() and (path / "input.yaml").exists())
     ]
 
-def read_case(case: str, input_file: Optional[Path]=None) -> xr.Dataset:
+def read_case(case: str, parameters: dict=None) -> xr.Dataset:
     """Read parameters from input.yaml for a specified case and return as a Dataset.
     
     Add a new element "case" which stores the name of the case.
 
-    If you pass in an input_file (Path to an input.yaml file), the routine will use this 
-    file. Otherwise, the function will look for a folder matching "case" in the
-    cases_directory.
+    You can optional pass in a dictionary of parameters. If you don't, the routine
+    will look for a subfolder in the cases directory matching "case"
     """
-    if input_file is None:
-        input_file = cases_directory / case / "input.yaml"
-    
-    with open(input_file) as file:
-        parameters = yaml.load(file, Loader=yaml.FullLoader)
+    if parameters is None:
+        with open(cases_directory / case / "input.yaml") as file:
+            parameters = yaml.load(file, Loader=yaml.FullLoader)
     
     plotting = parameters.pop("plotting")
     file_output = parameters.pop("file_output")

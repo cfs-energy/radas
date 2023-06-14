@@ -27,9 +27,6 @@ def calculate_derivative(_, charge_state_fraction: np.ndarray, ionisation_rate_c
     constantly refuelled at a rate of 1 / (residence_time * electron_density) and that the excited states
     are lost at a rate proportional to their concentration.
     """
-    ionisation_rate_coeff = np.nan_to_num(ionisation_rate_coeff)
-    recombination_rate_coeff = np.nan_to_num(recombination_rate_coeff)
-
     ionisation_to_above = ionisation_rate_coeff * charge_state_fraction
     ionisation_from_below = shift(ionisation_rate_coeff * charge_state_fraction, +1)
 
