@@ -18,12 +18,12 @@ from radas.mavrin_reference import read_mavrin_data, mavrin_species, compute_Mav
 def make_parameters(species):
     return {
         "species": species,
-        "electron_density": 1e+19,
+        "electron_density": 1e+20,
         "neutral_density": 0.0,
         "electron_temperature": np.logspace(0, 4).tolist(),
         "evolution_start": 1e-08,
         "evolution_stop": 100.0,
-        "residence_time": (np.logspace(16, 19, num=5) / 1e+19).tolist(),
+        "residence_time": (np.logspace(16, 19, num=5) / 1e+20).tolist(),
         "file_output": {"netcdf": False},
         "plotting": {},
     }
@@ -52,6 +52,7 @@ if __name__=="__main__":
     mavrin_data = read_mavrin_data()
 
     for species in mavrin_species():
+        print(f"Running {species}")
 
         parameters = make_parameters(species)
         dataset = run_case(species, parameters)

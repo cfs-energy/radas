@@ -65,7 +65,7 @@ def calculate_time_evolution(dataset: xr.Dataset) -> xr.Dataset:
     charge_state_fraction = xr.apply_ufunc(
         _time_evolve,
         dataset.ionisation_rate_coeff,
-        dataset.recombination_rate_coeff,
+        dataset.recombination_rate_coeff.roll(dim_charge_state=-1),
         dataset.electron_density,
         dataset.residence_time,
         vectorize=True,
