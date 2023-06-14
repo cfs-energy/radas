@@ -5,7 +5,11 @@ import sys
 from radas.directories import cases_directory
 
 def get_git_revision_short_hash() -> str:
-    return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()
+    try:
+        return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()
+    except:
+        # If git isn't available (sometimes the case in tests), return a blank
+        return ""
 
 def make_plots(dataset: xr.Dataset, key: str, plot_params: dict, figsize, show_dpi, save_dpi):
     """Make a plot using the data from dataset as specified in the "plot" dictionary."""

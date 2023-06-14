@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 import yaml
 import xarray as xr
 from numbers import Number
@@ -32,12 +32,18 @@ def list_cases() -> list[str]:
         if (path.is_dir() and (path / "input.yaml").exists())
     ]
 
-def read_case(case: str) -> xr.Dataset:
+def read_case(case: str, input_file: Optional[Path]=None) -> xr.Dataset:
     """Read parameters from input.yaml for a specified case and return as a Dataset.
     
     Add a new element "case" which stores the name of the case.
+
+    If you pass in an input_file (Path to an input.yaml file), the routine will use this 
+    file. Otherwise, the function will look for a folder matching "case" in the
+    cases_directory.
     """
-    input_file = cases_directory / case / "input.yaml"
+    if input_file is None:
+        input_file = cases_directory / case / "input.yaml"
+    
     with open(input_file) as file:
         parameters = yaml.load(file, Loader=yaml.FullLoader)
     

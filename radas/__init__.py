@@ -13,4 +13,5 @@ from .write_output import write_output
 from . import (
     computation,
     named_options,
+    mavrin_reference,
 )
