@@ -25,6 +25,22 @@ def build_rate_coefficients(dataset: xr.Dataset) -> xr.Dataset:
 
     dataset["mean_ionisation_potential"] = read_and_interpolate_rates(ADF11Dataset.MeanIonisationPotential, **kwargs)
 
+    for key in ["ionisation_rate_coeff",
+                "recombination_rate_coeff",
+                "charge_exchange_rate_coeff",
+                "line_emission_coeff",
+                "continuum_emission_coeff",
+                "charge_exchange_emission_coeff",
+                "mean_ionisation_potential"]:
+        
+        dataset[key] = dataset[key].fillna(0.0)
+    
+    for key in ["recombination_rate_coeff",
+                "charge_exchange_rate_coeff",
+                "continuum_emission_coeff",
+                "charge_exchange_emission_coeff"]:
+        dataset[key] = dataset[key].roll(dim_charge_state=+1)
+
     return dataset
 
 def read_and_interpolate_rates(adf11_dataset: ADF11Dataset, species: AtomicSpecies, electron_density: xr.DataArray, electron_temperature: xr.DataArray) -> xr.DataArray:
