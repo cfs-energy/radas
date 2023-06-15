@@ -23,7 +23,7 @@ def make_parameters(species):
         "electron_temperature": np.logspace(0, 4).tolist(),
         "evolution_start": 1e-08,
         "evolution_stop": 100.0,
-        "residence_time": (np.logspace(16, 19, num=5) / 1e+20).tolist(),
+        "ne_tau": (np.logspace(16, 19, num=5)).tolist(),
         "file_output": {"netcdf": False},
         "plotting": {},
     }
@@ -39,7 +39,8 @@ def run_case(species, parameters):
     dataset["coronal_mean_charge_state"] = (dataset.coronal_charge_state_fraction * dataset.dim_charge_state).sum(dim="dim_charge_state")
     dataset["coronal_electron_emission_prefactor"] = calculate_radiation.calculate_electron_emission_prefactor(dataset, dataset.coronal_charge_state_fraction)
     
-    dataset["ne_tau"] = (dataset.electron_density * dataset.residence_time).pint.to(ureg.m**-3 * ureg.s)
+    dataset["residence_time"] = (dataset.ne_tau / dataset.electron_density).pint.to(ureg.s)
+
     dataset["charge_state_fraction_evolution"] = calculate_derivatives.calculate_time_evolution(dataset)
     dataset["charge_state_fraction_at_equilibrium"] = dataset.charge_state_fraction_evolution.isel(dim_time=-1)
     dataset["noncoronal_mean_charge_state"] = (dataset.charge_state_fraction_at_equilibrium * dataset.dim_charge_state).sum(dim="dim_charge_state")
@@ -72,12 +73,11 @@ if __name__=="__main__":
         axs[1].semilogx(Te, dataset["coronal_mean_charge_state"], "k-", label="coronal")
 
         for i, ne_tau_value in enumerate(ne_tau.values):
-            tau = ne_tau_value / ne
-            axs[0].loglog(Te, noncoronal_Lz_mavrin.sel(dim_residence_time=tau), f"C{i}--")
-            axs[0].loglog(Te, noncoronal_Lz_radas.sel(dim_residence_time=tau), f"C{i}-")
+            axs[0].loglog(Te, noncoronal_Lz_mavrin.sel(dim_ne_tau=ne_tau_value), f"C{i}--")
+            axs[0].loglog(Te, noncoronal_Lz_radas.sel(dim_ne_tau=ne_tau_value), f"C{i}-")
 
-            axs[1].semilogx(Te, noncoronal_mean_charge_mavrin.sel(dim_residence_time=tau), f"C{i}--")
-            axs[1].semilogx(Te, noncoronal_mean_charge_radas.sel(dim_residence_time=tau), f"C{i}-", label=f"{ne_tau_value:3.2e}")
+            axs[1].semilogx(Te, noncoronal_mean_charge_mavrin.sel(dim_ne_tau=ne_tau_value), f"C{i}--")
+            axs[1].semilogx(Te, noncoronal_mean_charge_radas.sel(dim_ne_tau=ne_tau_value), f"C{i}-", label=f"{ne_tau_value:3.2e}")
         
         axs[0].set_ylabel("$L_z$")
         axs[1].set_ylabel("$\\langle Z \\rangle$")

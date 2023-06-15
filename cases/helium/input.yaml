@@ -2,7 +2,7 @@
 species: Helium
 
 # Electron density (in m**-3)
-electron_density: [1.0E+19, 1.0E+20]
+electron_density: 1.0E+20
 
 # Neutral density (in m**-3)
 neutral_density: 0.0
@@ -51,9 +51,8 @@ electron_temperature: [1.00000000e-01, 1.11424288e-01, 1.24153719e-01, 1.3833739
 evolution_start: 1.0E-8
 evolution_stop: 1.0E+2
 
-# Refuelling rate for evaluation (in s)
-# This is the "tau" in n_e * tau
-residence_time: [1.e-04, 1.e-03, 1.e-02, 1.e-01, 1.e+00]
+# electron density (ne) * residence time (tau) (in m^-3 s)
+ne_tau: [1.00000000e+16, 1.00000000e+17, 1.00000000e+18, 1.00000000e+19]
 
 file_output:
   netcdf: True
@@ -70,7 +69,7 @@ plotting:
 
     slice:
       # Electron density to plot (in m^-3)
-      electron_density: 1.0e+19
+      electron_density: 1.0e+20
 
     xscale: "log"
     xlabel: "$T_e [eV]$"
@@ -89,7 +88,7 @@ plotting:
     
     slice:
       # Electron density to plot (in m^-3)
-      electron_density: 1.0e+19
+      electron_density: 1.0e+20
 
     xscale: "log"
     xlabel: "$T_e [eV]$"
@@ -103,31 +102,35 @@ plotting:
   mean_charge_state:
 
     type: xrplot1d
-    variable: mean_charge_state
+    variable: noncoronal_mean_charge_state
+    iterate_over: dim_ne_tau
+    legend_base: "$n_e \\tau = #$"
+    in_legend: ne_tau
 
     slice:
       # Electron density to plot (in m^-3)
-      electron_density: 1.0e+19
+      electron_density: 1.0e+20
 
     xscale: "log"
     xlabel: "$T_e [eV]$"
     ylabel: "Mean charge state"
-    title: "Helium coronal mean charge state"
+    title: "Helium mean charge state"
     
     show: True
+    legend: True
     grid: True
 
   electron_emission_prefactor:
 
     type: xrplot1d
     variable: noncoronal_electron_emission_prefactor
-    iterate_over: dim_residence_time
+    iterate_over: dim_ne_tau
     legend_base: "$n_e \\tau = #$"
     in_legend: ne_tau
 
     slice:
       # Electron density to plot (in m^-3)
-      electron_density: 1.0e+19
+      electron_density: 1.0e+20
 
     xscale: log
     yscale: log
@@ -158,9 +161,9 @@ plotting:
       # Electron temperature to plot (in eV)
       electron_temperature: 50.0
       # Electron density to plot (in m^-3)
-      electron_density: 1.0e+19
-      # Refuelling time to plot (in s)
-      residence_time: .inf
+      electron_density: 1.0e+20
+      # Refuelling time to plot (in m**-3 * s)
+      ne_tau: 1.0e+19
     
     show: True
     legend: True

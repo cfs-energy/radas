@@ -36,12 +36,14 @@ def run_radas_for_case(case: str):
     dataset = build_rate_coefficients.build_rate_coefficients(dataset)
 
     dataset["coronal_charge_state_fraction"] = calculate_coronal_states.calculate_coronal_states(dataset)
-    dataset["mean_charge_state"] = (dataset.coronal_charge_state_fraction * dataset.dim_charge_state).sum(dim="dim_charge_state")
+    dataset["coronal_mean_charge_state"] = (dataset.coronal_charge_state_fraction * dataset.dim_charge_state).sum(dim="dim_charge_state")
     dataset["coronal_electron_emission_prefactor"] = calculate_radiation.calculate_electron_emission_prefactor(dataset, dataset.coronal_charge_state_fraction)
+    
+    dataset["residence_time"] = (dataset.ne_tau / dataset.electron_density).pint.to(ureg.s)
 
-    dataset["ne_tau"] = (dataset.electron_density * dataset.residence_time).pint.to(ureg.m**-3 * ureg.s)
     dataset["charge_state_fraction_evolution"] = calculate_derivatives.calculate_time_evolution(dataset)
     dataset["charge_state_fraction_at_equilibrium"] = dataset.charge_state_fraction_evolution.isel(dim_time=-1)
+    dataset["noncoronal_mean_charge_state"] = (dataset.charge_state_fraction_at_equilibrium * dataset.dim_charge_state).sum(dim="dim_charge_state")
     dataset["noncoronal_electron_emission_prefactor"] = calculate_radiation.calculate_electron_emission_prefactor(dataset, dataset.charge_state_fraction_at_equilibrium)
     
     (cases_directory / dataset.case / "output").mkdir(exist_ok=True)
