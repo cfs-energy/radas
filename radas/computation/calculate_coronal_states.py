@@ -9,8 +9,8 @@ def calculate_coronal_states(dataset: xr.Dataset) -> xr.DataArray:
     charge_state_fraction[0] = 1.0
 
     for charge_state in range(dataset.atomic_number):
-        charge_state_fraction.loc[dict(dim_charge_state=charge_state+1)] = \
-            charge_state_fraction.sel(dim_charge_state=charge_state) * ratio_of_ionisation_to_recombination.sel(dim_charge_state=charge_state)
+        charge_state_fraction[charge_state+1] = \
+            charge_state_fraction[charge_state] * ratio_of_ionisation_to_recombination[charge_state]
 
     charge_state_fraction /= charge_state_fraction.sum(dim="dim_charge_state")
 

@@ -27,6 +27,9 @@ def calculate_derivative(_, charge_state_fraction: np.ndarray, ionisation_rate_c
     constantly refuelled at a rate of 1 / ne_tau and that the excited states
     are lost at a rate proportional to their concentration.
     """
+    # Prevent negative fractions (can happen due to numerical errors)
+    # charge_state_fraction = np.maximum(charge_state_fraction, 0.0)
+
     ionisation_to_above = ionisation_rate_coeff * charge_state_fraction
     ionisation_from_below = shift(ionisation_rate_coeff * charge_state_fraction, +1)
 
@@ -45,8 +48,8 @@ def calculate_derivative(_, charge_state_fraction: np.ndarray, ionisation_rate_c
 def calculate_time_evolution(dataset: xr.Dataset) -> xr.Dataset:
     """Evolve the system over time, and record the impurity charge-state fractions as a function of time.
     
-    The equations are stiff, so we need to use "BDF", "Radau" or "LSODA" as the solver method. Of these,
-    LSODA was found to give fastest evaluation, then Radau, then BDF.
+    The equations are stiff, so we need to use "BDF", "Radau" or "LSODA" as the solver method. Radau was
+    found to give a good balance of accuracy and speed.
     """
     evaluation_times = np.logspace(np.log10(dataset.evolution_start), np.log10(dataset.evolution_stop))
 
@@ -60,7 +63,9 @@ def calculate_time_evolution(dataset: xr.Dataset) -> xr.Dataset:
             t_span=[evaluation_times[0], evaluation_times[-1]],
             t_eval=evaluation_times,
             args = (ionisation_rate_coeff, recombination_rate_coeff, electron_density, ne_tau),
-            method="LSODA",
+            method="Radau",
+            rtol=1E-3,
+            atol=1E-12,
         )
 
         return result.y

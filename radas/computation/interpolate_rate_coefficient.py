@@ -2,15 +2,29 @@ from scipy.interpolate import RectBivariateSpline
 import numpy as np
 import xarray as xr
 
-def _interpolate_rate_coefficient(electron_density_grid, electron_temperature_grid, rate_coeff_for_charge_state, electron_density_point, electron_temperature_point):
+def _interpolate_rate_coefficient(density_grid_values_for_coeff, temp_grid_values_for_coeff, coeff, density_points_to_interpolate_to, temp_points_to_interpolate_to):
     """Interpolate a rate coefficient to the values specified.
 
     The interpolation is performed on logarithmic quantities, but this conversion is performed internally so you should pass
     non-logarithmic values in.
     """
-    interpolator = RectBivariateSpline(np.log10(electron_density_grid), np.log10(electron_temperature_grid), np.log10(rate_coeff_for_charge_state))
 
-    return np.power(10, interpolator(np.log10(electron_density_point), np.log10(electron_temperature_point), grid=True))
+    if not np.all((
+        np.min(density_points_to_interpolate_to) >= np.min(density_grid_values_for_coeff),
+        np.max(density_points_to_interpolate_to) <= np.max(density_grid_values_for_coeff),
+        np.min(temp_points_to_interpolate_to) >= np.min(temp_grid_values_for_coeff),
+        np.max(temp_points_to_interpolate_to) <= np.max(temp_grid_values_for_coeff),
+    )):
+        raise RuntimeError("Extrapolation out-of-bounds.\n" +
+            f"{'dens min':10s} in bounds {np.min(density_points_to_interpolate_to):3.2e} > {np.min(density_grid_values_for_coeff):3.2e}: {np.min(density_points_to_interpolate_to) >= np.min(density_grid_values_for_coeff)}\n" + 
+            f"{'dens max':10s} in bounds {np.max(density_points_to_interpolate_to):3.2e} < {np.max(density_grid_values_for_coeff):3.2e}: {np.max(density_points_to_interpolate_to) <= np.max(density_grid_values_for_coeff)}\n" + 
+            f"{'temp min':10s} in bounds {np.min(temp_points_to_interpolate_to):3.2e} > {np.min(temp_grid_values_for_coeff):3.2e}: {np.min(temp_points_to_interpolate_to) >= np.min(temp_grid_values_for_coeff)}\n" + 
+            f"{'temp max':10s} in bounds {np.max(temp_points_to_interpolate_to):3.2e} < {np.max(temp_grid_values_for_coeff):3.2e}: {np.max(temp_points_to_interpolate_to) <= np.max(temp_grid_values_for_coeff)}\n" 
+        )
+
+    interpolator = RectBivariateSpline(np.log10(density_grid_values_for_coeff), np.log10(temp_grid_values_for_coeff), np.log10(coeff))
+    return np.power(10, interpolator(np.log10(density_points_to_interpolate_to), np.log10(temp_points_to_interpolate_to), grid=True))
+
 
 def interpolate_rate_coefficient(rate_coefficient_dataset: xr.Dataset, electron_density: xr.DataArray, electron_temperature: xr.DataArray) -> xr.DataArray:
     """Interpolate a rate coefficient to a grid of the electron_density and electron_temperature values specified.
