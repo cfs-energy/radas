@@ -5,11 +5,13 @@ from radas.mavrin_reference.compare_against_mavrin import make_parameters, run_c
 
 @pytest.fixture()
 def Lz_tolerance():
-    return 1.5
+    """Maximum percentage difference for Lz."""
+    return 0.25
 
 @pytest.fixture()
 def mean_charge_tolerance():
-    return 1.0
+    """Maximum absolute difference for mean charge."""
+    return 0.5
 
 @pytest.mark.parametrize("species", mavrin_species(), ids=mavrin_species())
 def test_against_mavrin_coronal(species, Lz_tolerance, mean_charge_tolerance):
@@ -59,11 +61,11 @@ def check_result(Lz_mavrin, Lz_radas, mean_charge_mavrin, mean_charge_radas, spe
 
     test_failed = not (
         # We take the mean, since there are some fine features in the curves which don't agree.
-        (1/Lz_tolerance < np.mean(Lz_mavrin / Lz_radas.values) < Lz_tolerance)
+        (1 - Lz_tolerance < np.mean(Lz_mavrin / Lz_radas.values) < 1 + Lz_tolerance)
         and
         (np.max(np.abs((mean_charge_mavrin - mean_charge_radas.values))) < mean_charge_tolerance)
     )
 
     if test_failed:
-        raise AssertionError(f"Test failed. Lz was not {1/Lz_tolerance} < {np.mean(Lz_mavrin / Lz_radas.values).values} < {Lz_tolerance} "
+        raise AssertionError(f"Test failed. Lz was not {1 - Lz_tolerance} < {np.mean(Lz_mavrin / Lz_radas.values).values} < {1 + Lz_tolerance} "
                              +f"or mean charge was not {np.max(np.abs((mean_charge_mavrin - mean_charge_radas.values))).values} < {mean_charge_tolerance}")
