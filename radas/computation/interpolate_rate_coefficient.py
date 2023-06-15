@@ -8,18 +8,19 @@ def _interpolate_rate_coefficient(density_grid_values_for_coeff, temp_grid_value
     The interpolation is performed on logarithmic quantities, but this conversion is performed internally so you should pass
     non-logarithmic values in.
     """
+    epsilon = 1E-2
 
     if not np.all((
-        np.min(density_points_to_interpolate_to) >= np.min(density_grid_values_for_coeff),
-        np.max(density_points_to_interpolate_to) <= np.max(density_grid_values_for_coeff),
-        np.min(temp_points_to_interpolate_to) >= np.min(temp_grid_values_for_coeff),
-        np.max(temp_points_to_interpolate_to) <= np.max(temp_grid_values_for_coeff),
+        np.min(density_points_to_interpolate_to) >= (1 - epsilon) * np.min(density_grid_values_for_coeff),
+        np.max(density_points_to_interpolate_to) <= (1 + epsilon) * np.max(density_grid_values_for_coeff),
+        np.min(temp_points_to_interpolate_to) >= (1 - epsilon) * np.min(temp_grid_values_for_coeff),
+        np.max(temp_points_to_interpolate_to) <= (1 + epsilon) * np.max(temp_grid_values_for_coeff),
     )):
         raise RuntimeError("Extrapolation out-of-bounds.\n" +
-            f"{'dens min':10s} in bounds {np.min(density_points_to_interpolate_to):3.2e} > {np.min(density_grid_values_for_coeff):3.2e}: {np.min(density_points_to_interpolate_to) >= np.min(density_grid_values_for_coeff)}\n" + 
-            f"{'dens max':10s} in bounds {np.max(density_points_to_interpolate_to):3.2e} < {np.max(density_grid_values_for_coeff):3.2e}: {np.max(density_points_to_interpolate_to) <= np.max(density_grid_values_for_coeff)}\n" + 
-            f"{'temp min':10s} in bounds {np.min(temp_points_to_interpolate_to):3.2e} > {np.min(temp_grid_values_for_coeff):3.2e}: {np.min(temp_points_to_interpolate_to) >= np.min(temp_grid_values_for_coeff)}\n" + 
-            f"{'temp max':10s} in bounds {np.max(temp_points_to_interpolate_to):3.2e} < {np.max(temp_grid_values_for_coeff):3.2e}: {np.max(temp_points_to_interpolate_to) <= np.max(temp_grid_values_for_coeff)}\n" 
+            f"{'dens min':10s} in bounds {np.min(density_points_to_interpolate_to):3.2e} > {np.min(density_grid_values_for_coeff):3.2e}: {np.min(density_points_to_interpolate_to) >= (1 - epsilon) * np.min(density_grid_values_for_coeff)}\n" + 
+            f"{'dens max':10s} in bounds {np.max(density_points_to_interpolate_to):3.2e} < {np.max(density_grid_values_for_coeff):3.2e}: {np.max(density_points_to_interpolate_to) <= (1 + epsilon) * np.max(density_grid_values_for_coeff)}\n" + 
+            f"{'temp min':10s} in bounds {np.min(temp_points_to_interpolate_to):3.2e} > {np.min(temp_grid_values_for_coeff):3.2e}: {np.min(temp_points_to_interpolate_to) >= (1 - epsilon) * np.min(temp_grid_values_for_coeff)}\n" + 
+            f"{'temp max':10s} in bounds {np.max(temp_points_to_interpolate_to):3.2e} < {np.max(temp_grid_values_for_coeff):3.2e}: {np.max(temp_points_to_interpolate_to) <= (1 + epsilon) * np.max(temp_grid_values_for_coeff)}\n" 
         )
 
     interpolator = RectBivariateSpline(np.log10(density_grid_values_for_coeff), np.log10(temp_grid_values_for_coeff), np.log10(coeff))
