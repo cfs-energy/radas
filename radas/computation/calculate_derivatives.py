@@ -44,7 +44,11 @@ def calculate_derivative(_, charge_state_fraction: np.ndarray, ionisation_rate_c
     return change_in_charge_state_fraction * electron_density
 
 def calculate_time_evolution(dataset: xr.Dataset) -> xr.Dataset:
-    """Evolve the system over time, and record the impurity charge-state fractions as a function of time."""
+    """Evolve the system over time, and record the impurity charge-state fractions as a function of time.
+    
+    The equations are stiff, so we need to use "BDF", "Radau" or "LSODA" as the solver method. Of these,
+    LSODA was found to give fastest evaluation, then Radau, then BDF.
+    """
     evaluation_times = np.logspace(np.log10(dataset.evolution_start), np.log10(dataset.evolution_stop))
 
     def _time_evolve(ionisation_rate_coeff, recombination_rate_coeff, electron_density, residence_time):
@@ -57,7 +61,7 @@ def calculate_time_evolution(dataset: xr.Dataset) -> xr.Dataset:
             t_span=[evaluation_times[0], evaluation_times[-1]],
             t_eval=evaluation_times,
             args = (ionisation_rate_coeff, recombination_rate_coeff, electron_density, residence_time),
-            method="BDF",
+            method="LSODA",
         )
 
         return result.y
