@@ -18,6 +18,22 @@ dat_files:
     CXCrossCouplingCoefficients: 1996
     ChargeExchangeEmission: 1996
     MeanIonisationPotential: 1996
+  Lithium:
+    EffectiveRecombinationCoefficients: 1996
+    EffectiveIonisationCoefficients: 1996
+    LineEmissionFromExcitation: 1996
+    RecombinationAndBremsstrahlung: 1996
+    CXCrossCouplingCoefficients: 1989
+    ChargeExchangeEmission: 1989
+    MeanIonisationPotential: 1996
+  Beryllium:
+    EffectiveRecombinationCoefficients: 1996
+    EffectiveIonisationCoefficients: 1996
+    LineEmissionFromExcitation: 1996
+    RecombinationAndBremsstrahlung: 1996
+    CXCrossCouplingCoefficients: 1989
+    ChargeExchangeEmission: 1989
+    MeanIonisationPotential: 1996
   Carbon:
     EffectiveRecombinationCoefficients: 1996
     EffectiveIonisationCoefficients: 1996

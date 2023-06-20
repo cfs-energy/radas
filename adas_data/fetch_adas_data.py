@@ -5,6 +5,7 @@ import datetime
 import yaml
 import shutil
 import subprocess
+import sys
 
 from radas.named_options.adf11_dataset import ADF11Dataset
 from radas.named_options.atomic_species import AtomicSpecies
@@ -154,5 +155,7 @@ if __name__=="__main__":
         for dataset_key, year in species_datasets.items():
             success = download_adas_file(ADF11Dataset[dataset_key], AtomicSpecies[species_key], year)
             if not success: print(f"Failed to download the {year} {dataset_key} for {species_key}")
+        
+        if "pytest" in sys.modules: break # Only download a single species if testing
     
     print("Done")

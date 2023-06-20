@@ -38,4 +38,4 @@ def write_dataset_to_netcdf(dataset: xr.Dataset):
         serializable_dataset[key] = dataset[key].pint.dequantify()
     
     if not "pytest" in sys.modules: #skip saving output if running tests
-        serializable_dataset.to_netcdf(cases_directory / dataset.case / "output" / "dataset.nc")
+        serializable_dataset.to_netcdf(cases_directory / dataset.case / "output" / f"{dataset.case}.nc")

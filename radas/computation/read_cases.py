@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 import yaml
 import xarray as xr
 from numbers import Number
@@ -32,14 +32,17 @@ def list_cases() -> list[str]:
         if (path.is_dir() and (path / "input.yaml").exists())
     ]
 
-def read_case(case: str) -> xr.Dataset:
+def read_case(case: str, parameters: dict=None) -> xr.Dataset:
     """Read parameters from input.yaml for a specified case and return as a Dataset.
     
     Add a new element "case" which stores the name of the case.
+
+    You can optional pass in a dictionary of parameters. If you don't, the routine
+    will look for a subfolder in the cases directory matching "case"
     """
-    input_file = cases_directory / case / "input.yaml"
-    with open(input_file) as file:
-        parameters = yaml.load(file, Loader=yaml.FullLoader)
+    if parameters is None:
+        with open(cases_directory / case / "input.yaml") as file:
+            parameters = yaml.load(file, Loader=yaml.FullLoader)
     
     plotting = parameters.pop("plotting")
     file_output = parameters.pop("file_output")
@@ -50,18 +53,15 @@ def read_case(case: str) -> xr.Dataset:
         electron_density="m**-3",
         neutral_density="m**-3",
         electron_temperature="eV",
-        residence_time="s",
+        ne_tau="m**-3 * s",
     )
 
     attrs = dict()
     for key, value in parameters.items():
-        if key in ["electron_density", "neutral_density", "electron_temperature", "residence_time"]:
+        if key in ["electron_density", "neutral_density", "electron_temperature", "ne_tau"]:
             value = Quantity(np.atleast_1d(value), units[key])
             ds[key] = xr.DataArray(value, coords={f"dim_{key}": value.magnitude})
         
-        elif key in ["electron_density_units", "neutral_density_units", "electron_temperature_units", "residence_time_units"]:
-            continue
-
         elif isinstance(value, Number):
             ds[key] = xr.DataArray(float(value))
 
