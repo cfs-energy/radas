@@ -2,7 +2,7 @@
 species: Nitrogen
 
 # Electron density (in m**-3)
-electron_density: 1.0E+20
+electron_density: [1.0E+18, 1.0E+19, 1.0E+20, 1.0E+21]
 
 # Neutral density (in m**-3)
 neutral_density: 0.0

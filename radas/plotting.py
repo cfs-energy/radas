@@ -1,15 +1,8 @@
 import matplotlib.pyplot as plt
 import xarray as xr
-import subprocess
 import sys
 from radas.directories import cases_directory
-
-def get_git_revision_short_hash() -> str:
-    try:
-        return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()
-    except:
-        # If git isn't available (sometimes the case in tests), return a blank
-        return ""
+from .get_git_hash import get_git_revision_short_hash
 
 def make_plots(dataset: xr.Dataset, key: str, plot_params: dict, figsize, show_dpi, save_dpi):
     """Make a plot using the data from dataset as specified in the "plot" dictionary."""
