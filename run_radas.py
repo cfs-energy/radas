@@ -17,7 +17,7 @@ from radas.unit_handling import ureg
 from radas.get_git_hash import get_git_revision_short_hash
 
 @click.command()
-@click.argument("case", type=click.Choice(read_cases.list_cases() + ["all"]))
+@click.option("--case", type=click.Choice(read_cases.list_cases() + ["all"]), default="all")
 @click.option("--show", is_flag=True, help="Display an interactive figure of the result")
 def run_radas(case: str, show: bool):
 
