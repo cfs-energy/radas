@@ -13,6 +13,7 @@ from radas.computation import (
 from radas import make_plots, write_output
 from radas.directories import cases_directory
 from radas.unit_handling import ureg
+from radas.get_git_hash import get_git_revision_short_hash
 
 @click.command()
 @click.argument("case", type=click.Choice(read_cases.list_cases() + ["all"]))
@@ -31,6 +32,7 @@ def run_radas(case: str, show: bool):
 
 def run_radas_for_case(case: str):
     dataset, plots, file_output = read_cases.read_case(case)
+    dataset.assign_attrs(radas_git_hash = get_git_revision_short_hash())
 
     dataset = read_cases.convert_enums_for_parameters(dataset)
     dataset = build_rate_coefficients.build_rate_coefficients(dataset)
