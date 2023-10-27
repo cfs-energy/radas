@@ -1,4 +1,4 @@
-#!.venv/bin/python
+#!/usr/bin/env python3
 from pathlib import Path
 import urllib.request
 import datetime
@@ -9,7 +9,7 @@ import sys
 
 from radas.named_options.adf11_dataset import ADF11Dataset
 from radas.named_options.atomic_species import AtomicSpecies
-from radas.directories import module_directory, environment_directory
+from radas.directories import module_directory
 
 here = Path(__file__).parent
 url_base = "https://open.adas.ac.uk"
@@ -81,7 +81,7 @@ def download_and_compile_adas_reader(reader: str) -> bool:
 
     compile_reader = lambda quiet: subprocess.run(
         [
-            str(environment_directory / "bin" / "python"),
+            "python3",
             "-m",
             "numpy.f2py",
             "-c",
@@ -111,7 +111,7 @@ def download_and_compile_adas_reader(reader: str) -> bool:
 def compile_file_handling_helper():
     compile_file_handling = lambda quiet: subprocess.run(
         [
-            str(environment_directory / "bin" / "python"),
+            "python3",
             "-m",
             "numpy.f2py",
             "-c",
