@@ -135,7 +135,7 @@ def compile_file_handling_helper():
         if file.name.startswith(f"fortran_file_handling"):
             file.replace(module_directory / "adas_file_readers" / file.name)
 
-if __name__=="__main__":
+def fetch_adas():
     input_file = here / "data_to_fetch.yaml"
     with open(input_file) as file:
         data_to_fetch = yaml.load(file, Loader=yaml.FullLoader)
@@ -159,3 +159,6 @@ if __name__=="__main__":
         if "pytest" in sys.modules: break # Only download a single species if testing
     
     print("Done")
+
+if __name__=="__main__":
+    fetch_adas()
