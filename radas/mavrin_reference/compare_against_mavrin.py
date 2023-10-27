@@ -1,4 +1,4 @@
-#!.venv/bin/python
+#!/usr/bin/env python3
 # Run this script from the repository directory.
 
 import numpy as np

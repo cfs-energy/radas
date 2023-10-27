@@ -3,7 +3,6 @@ from .named_options.atomic_species import AtomicSpecies
 from .directories import (
     module_directory,
     repository_directory,
-    environment_directory,
     adas_data_directory,
     dat_files_directory,
 )
