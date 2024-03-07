@@ -1,15 +1,19 @@
 import numpy as np
 import xarray as xr
 
-from ..unit_handling import Quantity, ureg, convert_units
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.absolute()))
 
-from . import fortran_file_handling
-from .adf11 import adf11_reader
+import fortran_file_handling
+from adf11 import adf11_reader
+# from . import fortran_file_handling
+# from .adf11 import adf11_reader
 
 
 def read_adf11_file(
     data_file_directory, species_name, dataset_type, dataset_config
-) -> xr.Dataset:
+) -> dict:
     """Open and read an ADF11 OpenADAS file.
 
     Key to outputs (from xxdata_11.pdf)
@@ -92,34 +96,36 @@ def read_adf11_file(
 
     file_unit = 10
 
+    data = dict()
+
     fortran_file_handling.open_file(str(filename), file_unit)
     (
-        iz0,
-        is1min,
-        is1max,
-        nptnl,
-        nptn,
-        nptnc,
-        iptnla,
-        iptna,
-        iptnca,
-        ncnct,
-        icnctv,
-        iblmx,
-        ismax,
-        dnr_ele,
-        dnr_ams,
-        isppr,
-        ispbr,
-        isstgr,
-        idmax,
-        itmax,
-        ddens,
-        dtev,
-        drcof,
-        lres,
-        lstan,
-        lptn,
+        data["iz0"],
+        data["is1min"],
+        data["is1max"],
+        data["nptnl"],
+        data["nptn"],
+        data["nptnc"],
+        data["iptnla"],
+        data["iptna"],
+        data["iptnca"],
+        data["ncnct"],
+        data["icnctv"],
+        data["iblmx"],
+        data["ismax"],
+        data["dnr_ele"],
+        data["dnr_ams"],
+        data["isppr"],
+        data["ispbr"],
+        data["isstgr"],
+        data["idmax"],
+        data["itmax"],
+        data["ddens"],
+        data["dtev"],
+        data["drcof"],
+        data["lres"],
+        data["lstan"],
+        data["lptn"],
     ) = adf11_reader.xxdata_11(
         # unit to which input file is allocated
         iunit=file_unit,
@@ -146,48 +152,4 @@ def read_adf11_file(
 
     fortran_file_handling.close_file(file_unit)
 
-    ds = xr.Dataset()
-
-    ds["species"] = species_name
-    ds["dataset"] = dataset_type
-    ds["charge"] = iz0
-
-    electron_density = convert_units(
-        Quantity(10 ** ddens[:idmax], ureg.cm**-3), ureg.m**-3
-    )
-    electron_temp = Quantity(10 ** dtev[:itmax], ureg.eV)
-
-    # Use logarithmic quantities to define the coordinates, so that we can interpolate over logarithmic quantities.
-    ds["electron_density"] = xr.DataArray(
-        electron_density, coords=dict(dim_electron_density=electron_density.magnitude)
-    )
-    ds["electron_temp"] = xr.DataArray(
-        electron_temp, coords=dict(dim_electron_temp=electron_temp.magnitude)
-    )
-
-    ds = ds.assign_attrs(
-        reference_electron_density=Quantity(1.0, ureg.m**-3),
-        reference_electron_temp=Quantity(1.0, ureg.eV),
-    )
-
-    ds["number_of_charge_states"] = ismax
-    charge_state = np.arange(ismax)
-    ds["charge_state"] = xr.DataArray(
-        charge_state, coords=dict(dim_charge_state=charge_state)
-    )
-
-    coefficient = drcof[:ismax, :itmax, :idmax]
-    if dataset_config["code"] <= 9:
-        coefficient = 10**coefficient
-
-    input_units = dataset_config["stored_units"]
-    output_units = dataset_config["desired_units"]
-    ds["rate_coefficient"] = convert_units(
-        xr.DataArray(
-            coefficient,
-            dims=("dim_charge_state", "dim_electron_temp", "dim_electron_density"),
-        ).pint.quantify(input_units),
-        output_units,
-    )
-
-    return ds
+    return data

@@ -1,5 +1,6 @@
 import urllib.request
 from ..shared import data_file_directory
+from .determine_adas_dataset_type import determine_reader_class_and_config
 
 def download_species_data(species_name: str, species_config: dict, data_file_config: dict, url_base: str = "https://open.adas.ac.uk"):
     """Downloads all of the data files for a specific species."""
@@ -24,11 +25,3 @@ def download_species_data(species_name: str, species_config: dict, data_file_con
         if "OPEN-ADAS Error" in output_filename.read_text():
             output_filename.unlink()
             print(f"Failed to download the {year} {dataset_prefix} for {species_name}")
-
-def determine_reader_class_and_config(data_file_config, dataset_type):
-    """Examines the data_file_config to determine which reader class to use to reader a specific dataset_type."""
-    for reader_key, reader_config in data_file_config.items():
-        for dataset_key, dataset_config in reader_config.items():
-            if dataset_key == dataset_type:
-                return reader_key, dataset_config
-    raise NotImplementedError(f"Cannot identify reader for {dataset_type}.")

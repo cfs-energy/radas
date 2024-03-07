@@ -1,7 +1,6 @@
 """Set up the pint library for unit handling."""
 
 import warnings
-from collections.abc import Callable
 from functools import wraps
 from typing import Any, Union
 
@@ -10,7 +9,7 @@ import numpy.typing as npt
 import pint
 import pint_xarray
 import xarray as xr
-from pint.errors import DimensionalityError
+from pint import UnitStrippedWarning, DimensionalityError
 
 ureg = pint_xarray.setup_registry(
     pint.UnitRegistry(
@@ -20,8 +19,6 @@ ureg = pint_xarray.setup_registry(
 pint.set_application_registry(ureg)
 
 Quantity = ureg.Quantity
-Unit = ureg.Unit
-
 
 def suppress_downcast_warning(func):
     """Suppresses a common warning about downcasting quantities to arrays."""
@@ -79,6 +76,7 @@ def dimensionless_magnitude(
 
 __all__ = [
     "DimensionalityError",
+    "UnitStrippedWarning",
     "ureg",
     "Quantity",
     "Unit",

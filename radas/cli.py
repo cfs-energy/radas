@@ -2,7 +2,9 @@ import click
 import xarray as xr
 
 from .shared import open_config_file, output_directory
-from .adas_interface import prepare_adas_fortran_interface, download_species_data
+# from .adas_interface import prepare_adas_fortran_interface, download_species_data
+from .adas_interface.prepare_adas_readers import prepare_adas_fortran_interface
+from .adas_interface.download_adas_datasets import download_species_data
 from .build_raw_dataset import build_raw_dataset
 
 from .coronal_equilibrium import calculate_coronal_fractional_abundances
