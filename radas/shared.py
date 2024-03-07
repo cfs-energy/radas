@@ -1,4 +1,9 @@
+from pathlib import Path
 import subprocess
+
+module_directory = Path(__file__).parent
+data_file_directory = module_directory / ".data_files"
+output_directory = module_directory.parent / "output"
 
 def get_git_revision_short_hash() -> str:
     try:

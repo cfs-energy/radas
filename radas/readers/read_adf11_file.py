@@ -1,18 +1,13 @@
 import numpy as np
 import xarray as xr
-from ..named_options.adf11_dataset import ADF11Dataset, ADF11Codes, ADF11RateCoeffStoredUnits, ADF11RateCoeffDesiredUnits
-from ..named_options.atomic_species import AtomicSpecies
-from ..directories import dat_files_directory
-from ..unit_handling import Quantity, ureg
 
-try:
-    from . import fortran_file_handling
-    from . import ADF11_reader
-except ModuleNotFoundError:
-    print("Error: could not find the compiled f2py OpenADAS readers. Have you run 'python adas_data/fetch_adas_data.py'?")
+from ..unit_handling import Quantity, ureg, convert_units
+
+from . import fortran_file_handling
+from .adf11 import adf11_reader
 
 
-def read_adf11_file(dataset: ADF11Dataset, species: AtomicSpecies):
+def read_adf11_file(data_file_directory, species_name, dataset_type, dataset_config) -> xr.Dataset:
     """Open and read an ADF11 OpenADAS file.
 
     Key to outputs (from xxdata_11.pdf)
@@ -88,14 +83,13 @@ def read_adf11_file(dataset: ADF11Dataset, species: AtomicSpecies):
     (l*4)  | lptn       | = .true. => partition block present
            |            | = .false. => partition block not present
     """
-    filename = dat_files_directory / f"{species.name}_{dataset.name}.dat"
+    filename = data_file_directory / f"{species_name}_{dataset_type}.dat"
     
     if not filename.exists(): raise FileNotFoundError(f"{filename} does not exist.")
 
     file_unit = 10
 
     fortran_file_handling.open_file(str(filename), file_unit)
-
     (
         iz0,
         is1min,
@@ -123,11 +117,11 @@ def read_adf11_file(dataset: ADF11Dataset, species: AtomicSpecies):
         lres,
         lstan,
         lptn
-    ) = ADF11_reader.xxdata_11(
+    ) = adf11_reader.xxdata_11(
         # unit to which input file is allocated
         iunit  = file_unit,
         # class of data (numerical code)
-        iclass = ADF11Codes[dataset.name].value,
+        iclass = dataset_config["code"],
         # 
         # Hard-coded values for ADF11 files
         # 
@@ -151,22 +145,22 @@ def read_adf11_file(dataset: ADF11Dataset, species: AtomicSpecies):
 
     ds = xr.Dataset()
 
-    ds["species"] = species.name
-    ds["dataset"] = dataset.name
+    ds["species"] = species_name
+    ds["dataset"] = dataset_type
     ds["charge"] = iz0
 
-    electron_density = Quantity(10**ddens[:idmax], ureg.cm**-3).to(ureg.m**-3)
-    electron_temperature = Quantity(10**dtev[:itmax], ureg.eV)
+    electron_density = convert_units(Quantity(10**ddens[:idmax], ureg.cm**-3), ureg.m**-3)
+    electron_temp = Quantity(10**dtev[:itmax], ureg.eV)
     
     # Use logarithmic quantities to define the coordinates, so that we can interpolate over logarithmic quantities.
     ds["electron_density"] = \
        xr.DataArray(electron_density, coords=dict(dim_electron_density=electron_density.magnitude))
-    ds["electron_temperature"] = \
-       xr.DataArray(electron_temperature, coords=dict(dim_electron_temperature=electron_temperature.magnitude))
+    ds["electron_temp"] = \
+       xr.DataArray(electron_temp, coords=dict(dim_electron_temp=electron_temp.magnitude))
 
     ds = ds.assign_attrs(
         reference_electron_density = Quantity(1.0, ureg.m**-3),
-        reference_electron_temperature = Quantity(1.0, ureg.eV),
+        reference_electron_temp = Quantity(1.0, ureg.eV),
     )
     
     ds['number_of_charge_states'] = ismax
@@ -174,13 +168,13 @@ def read_adf11_file(dataset: ADF11Dataset, species: AtomicSpecies):
     ds["charge_state"] = xr.DataArray(charge_state, coords=dict(dim_charge_state=charge_state))
     
     coefficient = drcof[:ismax, :itmax, :idmax]
-    if ADF11Codes[dataset.name].value <= 9:
+    if dataset_config["code"] <= 9:
         coefficient = 10**coefficient
     
-    input_units = ADF11RateCoeffStoredUnits[dataset.name].value
-    output_units = ADF11RateCoeffDesiredUnits[dataset.name].value
-    ds["rate_coefficient"] = xr.DataArray(
-       coefficient, dims=("dim_charge_state", "dim_electron_temperature", "dim_electron_density")
-    ).pint.quantify(input_units).pint.to(output_units)
+    input_units = dataset_config["stored_units"]
+    output_units = dataset_config["desired_units"]
+    ds["rate_coefficient"] = convert_units(xr.DataArray(
+       coefficient, dims=("dim_charge_state", "dim_electron_temp", "dim_electron_density")
+    ).pint.quantify(input_units), output_units)
     
     return ds

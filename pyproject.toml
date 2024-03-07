@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "radas"
-version = "0.1.0"
+version = "1.0.0"
 description = "Plasma radiation calculated using OpenADAS"
 authors = ["Commonwealth Fusion Systems"]
 readme = "README.md"

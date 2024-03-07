@@ -1,8 +1,8 @@
 !    -*- f90 -*-
 ! Note: the context of this file is case sensitive.
 
-python module ADF11_reader ! in 
-    interface  ! in :ADF11_reader
+python module adf11_reader ! in 
+    interface  ! in :adf11_reader
         subroutine xxdata_11(iunit,iclass,isdimd,iddimd,itdimd,ndptnl,ndptn,ndptnc,ndcnct,iz0,is1min,is1max,nptnl,nptn,nptnc,iptnla,iptna,iptnca,ncnct,icnctv,iblmx,ismax,dnr_ele,dnr_ams,isppr,ispbr,isstgr,idmax,itmax,ddens,dtev,drcof,lres,lstan,lptn) ! in :xxdata_11:xxdata_11.for
             integer, intent(in) :: iunit
             integer, intent(in) :: iclass
@@ -41,7 +41,7 @@ python module ADF11_reader ! in
             logical, intent(out) :: lptn
         end subroutine xxdata_11
     end interface 
-end python module ADF11_reader
+end python module adf11_reader
 
 ! This file was auto-generated with f2py (version:1.24.2).
 ! See:
