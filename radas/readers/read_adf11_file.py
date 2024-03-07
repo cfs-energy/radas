@@ -7,7 +7,9 @@ from . import fortran_file_handling
 from .adf11 import adf11_reader
 
 
-def read_adf11_file(data_file_directory, species_name, dataset_type, dataset_config) -> xr.Dataset:
+def read_adf11_file(
+    data_file_directory, species_name, dataset_type, dataset_config
+) -> xr.Dataset:
     """Open and read an ADF11 OpenADAS file.
 
     Key to outputs (from xxdata_11.pdf)
@@ -84,8 +86,9 @@ def read_adf11_file(data_file_directory, species_name, dataset_type, dataset_con
            |            | = .false. => partition block not present
     """
     filename = data_file_directory / f"{species_name}_{dataset_type}.dat"
-    
-    if not filename.exists(): raise FileNotFoundError(f"{filename} does not exist.")
+
+    if not filename.exists():
+        raise FileNotFoundError(f"{filename} does not exist.")
 
     file_unit = 10
 
@@ -116,29 +119,29 @@ def read_adf11_file(data_file_directory, species_name, dataset_type, dataset_con
         drcof,
         lres,
         lstan,
-        lptn
+        lptn,
     ) = adf11_reader.xxdata_11(
         # unit to which input file is allocated
-        iunit  = file_unit,
+        iunit=file_unit,
         # class of data (numerical code)
-        iclass = dataset_config["code"],
-        # 
+        iclass=dataset_config["code"],
+        #
         # Hard-coded values for ADF11 files
-        # 
+        #
         # maximum number of (sstage, parent, base) blocks in isonuclear master files
-        isdimd = 200,
+        isdimd=200,
         # maximum number of dens values in isonuclear master files
-        iddimd = 40,
+        iddimd=40,
         # maximum number of temp values in isonuclear master files
-        itdimd = 50,
+        itdimd=50,
         # maximum level of partitions
-        ndptnl = 4,
+        ndptnl=4,
         # maximum no. of partitions in one level
-        ndptn  = 128,
+        ndptn=128,
         # maximum no. of components in a partition
-        ndptnc = 256,
+        ndptnc=256,
         # maximum number of elements in connection vector
-        ndcnct = 100
+        ndcnct=100,
     )
 
     fortran_file_handling.close_file(file_unit)
@@ -149,32 +152,42 @@ def read_adf11_file(data_file_directory, species_name, dataset_type, dataset_con
     ds["dataset"] = dataset_type
     ds["charge"] = iz0
 
-    electron_density = convert_units(Quantity(10**ddens[:idmax], ureg.cm**-3), ureg.m**-3)
-    electron_temp = Quantity(10**dtev[:itmax], ureg.eV)
-    
+    electron_density = convert_units(
+        Quantity(10 ** ddens[:idmax], ureg.cm**-3), ureg.m**-3
+    )
+    electron_temp = Quantity(10 ** dtev[:itmax], ureg.eV)
+
     # Use logarithmic quantities to define the coordinates, so that we can interpolate over logarithmic quantities.
-    ds["electron_density"] = \
-       xr.DataArray(electron_density, coords=dict(dim_electron_density=electron_density.magnitude))
-    ds["electron_temp"] = \
-       xr.DataArray(electron_temp, coords=dict(dim_electron_temp=electron_temp.magnitude))
+    ds["electron_density"] = xr.DataArray(
+        electron_density, coords=dict(dim_electron_density=electron_density.magnitude)
+    )
+    ds["electron_temp"] = xr.DataArray(
+        electron_temp, coords=dict(dim_electron_temp=electron_temp.magnitude)
+    )
 
     ds = ds.assign_attrs(
-        reference_electron_density = Quantity(1.0, ureg.m**-3),
-        reference_electron_temp = Quantity(1.0, ureg.eV),
+        reference_electron_density=Quantity(1.0, ureg.m**-3),
+        reference_electron_temp=Quantity(1.0, ureg.eV),
     )
-    
-    ds['number_of_charge_states'] = ismax
+
+    ds["number_of_charge_states"] = ismax
     charge_state = np.arange(ismax)
-    ds["charge_state"] = xr.DataArray(charge_state, coords=dict(dim_charge_state=charge_state))
-    
+    ds["charge_state"] = xr.DataArray(
+        charge_state, coords=dict(dim_charge_state=charge_state)
+    )
+
     coefficient = drcof[:ismax, :itmax, :idmax]
     if dataset_config["code"] <= 9:
         coefficient = 10**coefficient
-    
+
     input_units = dataset_config["stored_units"]
     output_units = dataset_config["desired_units"]
-    ds["rate_coefficient"] = convert_units(xr.DataArray(
-       coefficient, dims=("dim_charge_state", "dim_electron_temp", "dim_electron_density")
-    ).pint.quantify(input_units), output_units)
-    
+    ds["rate_coefficient"] = convert_units(
+        xr.DataArray(
+            coefficient,
+            dims=("dim_charge_state", "dim_electron_temp", "dim_electron_density"),
+        ).pint.quantify(input_units),
+        output_units,
+    )
+
     return ds
