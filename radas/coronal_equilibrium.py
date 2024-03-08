@@ -6,8 +6,8 @@ def calculate_coronal_fractional_abundances(dataset: xr.Dataset) -> xr.DataArray
     """Calculate the fractional abundances of different charge states, assuming coronal equilibrium."""
 
     ratio_of_ionisation_to_recombination = (
-        dataset.effective_ionisation_coeff
-        / dataset.effective_recombination_coeff.roll(dim_charge_state=-1)
+        dataset.effective_ionisation
+        / dataset.effective_recombination.roll(dim_charge_state=-1)
     )
     charge_state_fraction = xr.zeros_like(ratio_of_ionisation_to_recombination)
     ratio_of_ionisation_to_recombination = dimensionless_magnitude(

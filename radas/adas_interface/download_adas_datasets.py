@@ -2,7 +2,13 @@ import urllib.request
 from ..shared import data_file_directory
 from .determine_adas_dataset_type import determine_reader_class_and_config
 
-def download_species_data(species_name: str, species_config: dict, data_file_config: dict, url_base: str = "https://open.adas.ac.uk"):
+
+def download_species_data(
+    species_name: str,
+    species_config: dict,
+    data_file_config: dict,
+    url_base: str = "https://open.adas.ac.uk",
+):
     """Downloads all of the data files for a specific species."""
     data_file_directory.mkdir(exist_ok=True, parents=True)
 

@@ -1,4 +1,5 @@
 """Bits and pieces shared by many other parts of radas."""
+
 from pathlib import Path
 import subprocess
 import yaml
@@ -8,8 +9,10 @@ data_file_directory = module_directory / ".data_files"
 repository_directory = module_directory.parent
 output_directory = repository_directory / "output"
 
+
 def get_data_file_directory():
     return data_file_directory
+
 
 def get_git_revision_short_hash() -> str:
     try:
@@ -21,6 +24,7 @@ def get_git_revision_short_hash() -> str:
     except:
         # If git isn't available (sometimes the case in tests), return a blank
         return ""
+
 
 def open_config_file(config: str | None = None) -> dict:
     config_file = module_directory / "config.yaml" if config is None else Path(config)

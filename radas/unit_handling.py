@@ -20,6 +20,7 @@ pint.set_application_registry(ureg)
 
 Quantity = ureg.Quantity
 
+
 def suppress_downcast_warning(func):
     """Suppresses a common warning about downcasting quantities to arrays."""
 

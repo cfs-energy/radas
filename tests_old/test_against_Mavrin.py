@@ -23,7 +23,7 @@ def test_against_mavrin_coronal(species, Lz_tolerance, mean_charge_tolerance):
     parameters["ne_tau"] = Quantity(1.0E+19, ureg.m**-3 * ureg.s)
     dataset = run_case(species, parameters)
 
-    Lz_radas = dataset["coronal_electron_emission_prefactor"]
+    Lz_radas = dataset["coronal_Lz"]
     mean_charge_radas = dataset["coronal_mean_charge_state"]
     
     Te = dataset["electron_temperature"]
@@ -42,8 +42,8 @@ def test_against_mavrin_noncoronal(species, Lz_tolerance, mean_charge_tolerance)
     parameters = make_parameters(species)
     dataset = run_case(species, parameters)
 
-    Lz_radas = dataset["noncoronal_electron_emission_prefactor"]
-    mean_charge_radas = dataset["noncoronal_mean_charge_state"]
+    Lz_radas = dataset["noncoronal_Lz"]
+    mean_charge_radas = dataset["equilibrium_mean_charge_state"]
     
     Te = dataset["electron_temperature"]
     ne_tau = dataset["ne_tau"]

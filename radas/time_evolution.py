@@ -16,12 +16,12 @@ def calculate_time_evolution(dataset: xr.Dataset) -> xr.Dataset:
     )
 
     def _time_evolve(
-        effective_ionisation_coeff,
-        effective_recombination_coeff,
+        effective_ionisation,
+        effective_recombination,
         electron_density,
         ne_tau,
     ):
-        charge_state_fraction = np.zeros_like(effective_ionisation_coeff)
+        charge_state_fraction = np.zeros_like(effective_ionisation)
         charge_state_fraction[0] = 1.0
 
         result = solve_ivp(
@@ -30,8 +30,8 @@ def calculate_time_evolution(dataset: xr.Dataset) -> xr.Dataset:
             t_span=[evaluation_times[0], evaluation_times[-1]],
             t_eval=evaluation_times,
             args=(
-                effective_ionisation_coeff,
-                effective_recombination_coeff,
+                effective_ionisation,
+                effective_recombination,
                 electron_density,
                 ne_tau,
             ),
@@ -44,10 +44,15 @@ def calculate_time_evolution(dataset: xr.Dataset) -> xr.Dataset:
 
     charge_state_fraction = xr.apply_ufunc(
         _time_evolve,
-        dataset.effective_ionisation_coeff,
-        dataset.effective_recombination_coeff.roll(dim_charge_state=-1),
-        dataset.electron_density,
-        dataset.ne_tau,
+        convert_units(
+            dataset.effective_ionisation, ureg.m**3 / ureg.s
+        ).pint.dequantify(),
+        convert_units(
+            dataset.effective_recombination.roll(dim_charge_state=-1),
+            ureg.m**3 / ureg.s,
+        ).pint.dequantify(),
+        convert_units(dataset.electron_density, ureg.m**-3).pint.dequantify(),
+        convert_units(dataset.ne_tau, ureg.m**-3 * ureg.s).pint.dequantify(),
         vectorize=True,
         input_core_dims=[("dim_charge_state",), ("dim_charge_state",), (), ()],
         output_core_dims=[("dim_charge_state", "dim_time")],
@@ -72,8 +77,8 @@ def shift(arr, num, fill_value=0.0):
 def calculate_derivative(
     _,
     charge_state_fraction: np.ndarray,
-    effective_ionisation_coeff,
-    effective_recombination_coeff,
+    effective_ionisation,
+    effective_recombination,
     electron_density,
     ne_tau=np.inf,
 ):
@@ -87,16 +92,16 @@ def calculate_derivative(
     constantly refuelled at a rate of 1 / ne_tau and that the excited states
     are lost at a rate proportional to their concentration.
     """
-    ionisation_to_above = effective_ionisation_coeff * charge_state_fraction
+    ionisation_to_above = effective_ionisation * charge_state_fraction
     ionisation_from_below = shift(
-        effective_ionisation_coeff * charge_state_fraction, +1
+        effective_ionisation * charge_state_fraction, +1
     )
 
-    recombination_from_above = effective_recombination_coeff * shift(
+    recombination_from_above = effective_recombination * shift(
         charge_state_fraction, -1
     )
     recombination_to_below = (
-        shift(effective_recombination_coeff, +1) * charge_state_fraction
+        shift(effective_recombination, +1) * charge_state_fraction
     )
 
     change_in_charge_state_fraction = np.zeros_like(charge_state_fraction)

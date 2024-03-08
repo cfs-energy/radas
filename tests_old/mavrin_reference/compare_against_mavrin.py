@@ -37,14 +37,14 @@ def run_case(species, parameters):
 
     dataset["coronal_charge_state_fraction"] = calculate_coronal_states.calculate_coronal_states(dataset)
     dataset["coronal_mean_charge_state"] = (dataset.coronal_charge_state_fraction * dataset.dim_charge_state).sum(dim="dim_charge_state")
-    dataset["coronal_electron_emission_prefactor"] = calculate_radiation.calculate_electron_emission_prefactor(dataset, dataset.coronal_charge_state_fraction)
+    dataset["coronal_Lz"] = calculate_radiation.calculate_Lz(dataset, dataset.coronal_charge_state_fraction)
     
     dataset["residence_time"] = (dataset.ne_tau / dataset.electron_density).pint.to(ureg.s)
 
-    dataset["charge_state_fraction_evolution"] = calculate_derivatives.calculate_time_evolution(dataset)
-    dataset["charge_state_fraction_at_equilibrium"] = dataset.charge_state_fraction_evolution.isel(dim_time=-1)
-    dataset["noncoronal_mean_charge_state"] = (dataset.charge_state_fraction_at_equilibrium * dataset.dim_charge_state).sum(dim="dim_charge_state")
-    dataset["noncoronal_electron_emission_prefactor"] = calculate_radiation.calculate_electron_emission_prefactor(dataset, dataset.charge_state_fraction_at_equilibrium)
+    dataset["charge_state_evolution"] = calculate_derivatives.calculate_time_evolution(dataset)
+    dataset["equilibrium_charge_state_fraction"] = dataset.charge_state_evolution.isel(dim_time=-1)
+    dataset["equilibrium_mean_charge_state"] = (dataset.equilibrium_charge_state_fraction * dataset.dim_charge_state).sum(dim="dim_charge_state")
+    dataset["noncoronal_Lz"] = calculate_radiation.calculate_Lz(dataset, dataset.equilibrium_charge_state_fraction)
 
     return dataset.squeeze()
 
@@ -62,19 +62,19 @@ if __name__=="__main__":
         Te = dataset["electron_temperature"]
         ne_tau = dataset["ne_tau"]
 
-        noncoronal_Lz_radas = dataset["noncoronal_electron_emission_prefactor"]
-        noncoronal_mean_charge_radas = dataset["noncoronal_mean_charge_state"]
+        equilibrium_Lz_radas = dataset["noncoronal_Lz"]
+        noncoronal_mean_charge_radas = dataset["equilibrium_mean_charge_state"]
 
-        noncoronal_Lz_mavrin = compute_Mavrin_polynomial_fit(Te, ne_tau, coeff=mavrin_data[f"{species}_Lz"]).squeeze()
+        equilibrium_Lz_mavrin = compute_Mavrin_polynomial_fit(Te, ne_tau, coeff=mavrin_data[f"{species}_Lz"]).squeeze()
         noncoronal_mean_charge_mavrin = compute_Mavrin_polynomial_fit(Te, ne_tau, coeff=mavrin_data[f"{species}_mean_charge"]).squeeze()
 
         fig, axs = plt.subplots(ncols=2)
-        axs[0].loglog(Te, dataset["coronal_electron_emission_prefactor"], "k-")
+        axs[0].loglog(Te, dataset["coronal_Lz"], "k-")
         axs[1].semilogx(Te, dataset["coronal_mean_charge_state"], "k-", label="coronal")
 
         for i, ne_tau_value in enumerate(ne_tau.values):
-            axs[0].loglog(Te, noncoronal_Lz_mavrin.sel(dim_ne_tau=ne_tau_value), f"C{i}--")
-            axs[0].loglog(Te, noncoronal_Lz_radas.sel(dim_ne_tau=ne_tau_value), f"C{i}-")
+            axs[0].loglog(Te, equilibrium_Lz_mavrin.sel(dim_ne_tau=ne_tau_value), f"C{i}--")
+            axs[0].loglog(Te, equilibrium_Lz_radas.sel(dim_ne_tau=ne_tau_value), f"C{i}-")
 
             axs[1].semilogx(Te, noncoronal_mean_charge_mavrin.sel(dim_ne_tau=ne_tau_value), f"C{i}--")
             axs[1].semilogx(Te, noncoronal_mean_charge_radas.sel(dim_ne_tau=ne_tau_value), f"C{i}-", label=f"{ne_tau_value:3.2e}")

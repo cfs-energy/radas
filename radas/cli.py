@@ -1,11 +1,10 @@
 import click
 import xarray as xr
+import multiprocessing as mp
 
 from .shared import open_config_file, output_directory
-# from .adas_interface import prepare_adas_fortran_interface, download_species_data
-from .adas_interface.prepare_adas_readers import prepare_adas_fortran_interface
-from .adas_interface.download_adas_datasets import download_species_data
-from .build_raw_dataset import build_raw_dataset
+from .adas_interface import prepare_adas_fortran_interface, download_species_data
+from .read_rate_coefficients import read_rate_coefficients
 
 from .coronal_equilibrium import calculate_coronal_fractional_abundances
 from .radiation import calculate_Lz
@@ -16,20 +15,26 @@ from .unit_handling import convert_units, ureg
 @click.command()
 @click.option("--config", type=click.Path(exists=True), default=None)
 @click.option("--species", type=str, default="all")
-def run_radas_cli(config: str | None, species: str="all"):
-    """
+def run_radas_cli(config: str | None, species: str = "all"):
+    """Runs the radas program.
+    
+    If config is given, it must point to a config.yaml file. Otherwise, a
+    default config.yaml (stored in the module directory) is used.
+
+    If species is given, it must be a valid species name (i.e. 'hydrogen').
+    Otherwise, all valid species in the config.yaml file are evaluated.
     """
     configuration = open_config_file(config)
 
     download_data_from_adas(configuration)
-    datasets = build_raw_datasets(configuration)
+    datasets = read_rate_coefficientss(configuration)
 
     if species == "all":
-        for species, dataset in datasets.items():
-            print(f"Running computation for {species}")
-            run_radas_computation(dataset)
+        with mp.Pool() as pool:
+            pool.map(run_radas_computation, [ds for ds in datasets.values()])
     else:
-        run_radas_computation(dataset[species])
+        run_radas_computation(datasets[species])
+
 
 def download_data_from_adas(configuration: dict):
     """Connect to OpenADAS and download the datasets requested in the configuration file.
@@ -48,18 +53,24 @@ def download_data_from_adas(configuration: dict):
                 configuration["data_file_config"],
             )
 
-def build_raw_datasets(configuration: dict):
+
+def read_rate_coefficientss(configuration: dict):
+    """Builds datasets containing the rate coefficients for each species."""
     datasets = dict()
     output_directory.mkdir(exist_ok=True, parents=True)
 
     for species_name, species_config in configuration["species"].items():
         if "data_files" in species_config:
-            datasets[species_name] = build_raw_dataset(species_name, configuration)
-    
+            datasets[species_name] = read_rate_coefficients(species_name, configuration)
+
     return datasets
 
+
 def run_radas_computation(dataset: xr.Dataset):
-    
+    """Calculate several dependent quantities based on the atomic rates, and store
+    the result as a NetCDF file.
+    """
+
     dataset["coronal_charge_state_fraction"] = calculate_coronal_fractional_abundances(
         dataset
     )
@@ -70,17 +81,15 @@ def run_radas_computation(dataset: xr.Dataset):
     dataset["residence_time"] = convert_units(
         dataset.ne_tau / dataset.electron_density, ureg.s
     )
-    dataset["charge_state_fraction_evolution"] = calculate_time_evolution(dataset)
-    dataset["charge_state_fraction_at_equilibrium"] = (
-        dataset.charge_state_fraction_evolution.isel(dim_time=-1)
+    dataset["charge_state_evolution"] = calculate_time_evolution(dataset)
+    dataset["equilibrium_charge_state_fraction"] = (
+        dataset.charge_state_evolution.isel(dim_time=-1)
     )
-    dataset["noncoronal_mean_charge_state"] = (
-        dataset.charge_state_fraction_at_equilibrium * dataset.dim_charge_state
+    dataset["equilibrium_mean_charge_state"] = (
+        dataset.equilibrium_charge_state_fraction * dataset.dim_charge_state
     ).sum(dim="dim_charge_state")
-    dataset["noncoronal_Lz"] = calculate_Lz(
-        dataset, dataset.charge_state_fraction_at_equilibrium
+    dataset["equilibrium_Lz"] = calculate_Lz(
+        dataset, dataset.equilibrium_charge_state_fraction
     )
 
-    dataset.pint.dequantify().to_netcdf(
-        output_directory / f"{dataset.species_name}.nc"
-    )
+    dataset.pint.dequantify().to_netcdf(output_directory / f"{dataset.species_name}.nc")

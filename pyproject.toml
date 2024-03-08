@@ -43,3 +43,11 @@ pythonpath = [
 testpaths = [
   "tests",
 ]
+
+[tool.coverage.run]
+omit = [
+  # These are built and executed at runtime. This is done in
+  # a temporary repository. The temporary copies of the reader
+  # are covered instead of the actual source files.
+  "radas/readers/*"
+]

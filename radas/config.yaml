@@ -24,19 +24,19 @@ globals:
 
 data_file_config:
   adf11:
-    effective_recombination_coeff:
+    effective_recombination:
       prefix: "ACD"
       code: 1
       stored_units: "cm**3 / s"
       desired_units: "m**3 / s"
 
-    effective_ionisation_coeff:
+    effective_ionisation:
       prefix: "SCD"
       code: 2
       stored_units: "cm**3 / s"
       desired_units: "m**3 / s"
 
-    charge_exchange_cross_coupling_coeff:
+    charge_exchange_cross_coupling:
       prefix: "CCD"
       code: 3
       stored_units: "cm**3 / s"
@@ -54,11 +54,11 @@ data_file_config:
       stored_units: "W cm**3"
       desired_units: "W m**3"
 
-    parent_cross_coupling_coeffs:
+    parent_cross_coupling:
       prefix: "QCD"
       code: 6
 
-    cross_coupling_coeffs:
+    cross_coupling:
       prefix: "XCD"
       code: 7
 
@@ -92,44 +92,44 @@ species:
     atomic_symbol: "H"
     atomic_number:  1
     data_files:
-      effective_recombination_coeff: 2012
-      effective_ionisation_coeff: 2012
+      effective_recombination: 2012
+      effective_ionisation: 2012
       line_emission_from_excitation: 2012
       recombination_and_bremsstrahlung: 2012
-      charge_exchange_cross_coupling_coeff: 1996
+      charge_exchange_cross_coupling: 1996
       charge_exchange_emission: 1996
       mean_ionisation_potential: 1996
   helium:
     atomic_symbol: "He"
     atomic_number:  2
     data_files:
-      effective_recombination_coeff: 1996
-      effective_ionisation_coeff: 1996
+      effective_recombination: 1996
+      effective_ionisation: 1996
       line_emission_from_excitation: 1996
       recombination_and_bremsstrahlung: 1996
-      charge_exchange_cross_coupling_coeff: 1996
+      charge_exchange_cross_coupling: 1996
       charge_exchange_emission: 1996
       mean_ionisation_potential: 1996
   lithium:
     atomic_symbol: "Li"
     atomic_number:  3
     data_files:
-      effective_recombination_coeff: 1996
-      effective_ionisation_coeff: 1996
+      effective_recombination: 1996
+      effective_ionisation: 1996
       line_emission_from_excitation: 1996
       recombination_and_bremsstrahlung: 1996
-      charge_exchange_cross_coupling_coeff: 1989
+      charge_exchange_cross_coupling: 1989
       charge_exchange_emission: 1989
       mean_ionisation_potential: 1996
   beryllium:
     atomic_symbol: "Be"
     atomic_number:  4
     data_files:
-      effective_recombination_coeff: 1996
-      effective_ionisation_coeff: 1996
+      effective_recombination: 1996
+      effective_ionisation: 1996
       line_emission_from_excitation: 1996
       recombination_and_bremsstrahlung: 1996
-      charge_exchange_cross_coupling_coeff: 1989
+      charge_exchange_cross_coupling: 1989
       charge_exchange_emission: 1989
       mean_ionisation_potential: 1996
   boron:
@@ -139,33 +139,33 @@ species:
     atomic_symbol: "C"
     atomic_number:  6
     data_files:
-      effective_recombination_coeff: 1996
-      effective_ionisation_coeff: 1996
+      effective_recombination: 1996
+      effective_ionisation: 1996
       line_emission_from_excitation: 1996
       recombination_and_bremsstrahlung: 1996
-      charge_exchange_cross_coupling_coeff: 1996
+      charge_exchange_cross_coupling: 1996
       charge_exchange_emission: 1996
       mean_ionisation_potential: 1996
   nitrogen:
     atomic_symbol: "N"
     atomic_number:  7
     data_files:
-      effective_recombination_coeff: 1996
-      effective_ionisation_coeff: 1996
+      effective_recombination: 1996
+      effective_ionisation: 1996
       line_emission_from_excitation: 1996
       recombination_and_bremsstrahlung: 1996
-      charge_exchange_cross_coupling_coeff: 1996
+      charge_exchange_cross_coupling: 1996
       charge_exchange_emission: 1996
       mean_ionisation_potential: 1996
   oxygen:
     atomic_symbol: "O"
     atomic_number:  8
     data_files:
-      effective_recombination_coeff: 1996
-      effective_ionisation_coeff: 1996
+      effective_recombination: 1996
+      effective_ionisation: 1996
       line_emission_from_excitation: 1996
       recombination_and_bremsstrahlung: 1996
-      charge_exchange_cross_coupling_coeff: 1989
+      charge_exchange_cross_coupling: 1989
       charge_exchange_emission: 1989
       mean_ionisation_potential: 1996
   fluorine:
@@ -175,11 +175,11 @@ species:
     atomic_symbol: "Ne"
     atomic_number: 10
     data_files:
-      effective_recombination_coeff: 1996
-      effective_ionisation_coeff: 1996
+      effective_recombination: 1996
+      effective_ionisation: 1996
       line_emission_from_excitation: 1996
       recombination_and_bremsstrahlung: 1996
-      charge_exchange_cross_coupling_coeff: 1989
+      charge_exchange_cross_coupling: 1989
       charge_exchange_emission: 1989
       mean_ionisation_potential: 1996
   sodium:
@@ -207,11 +207,11 @@ species:
     atomic_symbol: "Ar"
     atomic_number: 18
     data_files:
-      effective_recombination_coeff: 1989
-      effective_ionisation_coeff: 1989
+      effective_recombination: 1989
+      effective_ionisation: 1989
       line_emission_from_excitation: 1989
       recombination_and_bremsstrahlung: 1989
-      charge_exchange_cross_coupling_coeff: 1989
+      charge_exchange_cross_coupling: 1989
       charge_exchange_emission: 1989
       mean_ionisation_potential: 1989
   potassium:
@@ -269,11 +269,11 @@ species:
     atomic_symbol: "Kr"
     atomic_number: 36
     data_files:
-      effective_recombination_coeff: 1989
-      effective_ionisation_coeff: 1989
+      effective_recombination: 1989
+      effective_ionisation: 1989
       line_emission_from_excitation: 1989
       recombination_and_bremsstrahlung: 1989
-      charge_exchange_cross_coupling_coeff: 1989
+      charge_exchange_cross_coupling: 1989
       charge_exchange_emission: 1989
       mean_ionisation_potential: 1989
   rubidium:
@@ -331,11 +331,11 @@ species:
     atomic_symbol: "Xe"
     atomic_number: 54
     data_files:
-      effective_recombination_coeff: 1989
-      effective_ionisation_coeff: 1989
+      effective_recombination: 1989
+      effective_ionisation: 1989
       line_emission_from_excitation: 1989
       recombination_and_bremsstrahlung: 1989
-      charge_exchange_cross_coupling_coeff: 1989
+      charge_exchange_cross_coupling: 1989
       charge_exchange_emission: 1989
       mean_ionisation_potential: 1989
   cesium:
@@ -399,11 +399,11 @@ species:
     atomic_symbol: "W"
     atomic_number: 74
     data_files:
-      effective_recombination_coeff: 1989
-      effective_ionisation_coeff: 1989
+      effective_recombination: 1989
+      effective_ionisation: 1989
       line_emission_from_excitation: 1989
       recombination_and_bremsstrahlung: 1989
-      charge_exchange_cross_coupling_coeff: 1989
+      charge_exchange_cross_coupling: 1989
       charge_exchange_emission: 1989
   rhenium:
     atomic_symbol: "Re"
