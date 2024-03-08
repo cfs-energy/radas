@@ -7,7 +7,7 @@ import xarray as xr
 import numpy as np
 
 
-def read_rate_coefficients(species_name, config):
+def read_rate_coeff(species_name, config):
     """Builds a rate_dataset combining all of the raw data available for a given species."""
     config_for_species = config["species"][species_name]
 

@@ -59,14 +59,13 @@ def magnitude(
 ) -> Union[npt.NDArray[np.float32], float]:
     """Return the magnitude of an array, handling both Quantities and xr.DataArrays."""
     if isinstance(array, xr.DataArray):
-        return array.values
+        return array.pint.dequantify()
     elif isinstance(array, Quantity):
         return array.magnitude  # type: ignore[no-any-return]
     else:
         raise NotImplementedError(
             f"No implementation for 'magnitude' with an array of type {type(array)} ({array})"
         )
-
 
 def dimensionless_magnitude(
     array: Union[xr.DataArray, pint.Quantity]
@@ -80,8 +79,6 @@ __all__ = [
     "UnitStrippedWarning",
     "ureg",
     "Quantity",
-    "Unit",
-    "suppress_downcast_warning",
     "convert_units",
     "magnitude",
     "suppress_downcast_warning",

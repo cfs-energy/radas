@@ -4,18 +4,20 @@ import multiprocessing as mp
 
 from .shared import open_config_file, output_directory
 from .adas_interface import prepare_adas_fortran_interface, download_species_data
-from .read_rate_coefficients import read_rate_coefficients
+from .read_rate_coeffs import read_rate_coeff
 
 from .coronal_equilibrium import calculate_coronal_fractional_abundances
 from .radiation import calculate_Lz
 from .time_evolution import calculate_time_evolution
 from .unit_handling import convert_units, ureg
+from .mavrin_reference import compare_radas_to_mavrin
 
 
 @click.command()
 @click.option("--config", type=click.Path(exists=True), default=None)
 @click.option("--species", type=str, default="all")
-def run_radas_cli(config: str | None, species: str = "all"):
+@click.option("--plot/--no-plot", type=bool, default=False)
+def run_radas_cli(config: str | None, species: str = "all", plot: bool=False):
     """Runs the radas program.
     
     If config is given, it must point to a config.yaml file. Otherwise, a
@@ -27,13 +29,16 @@ def run_radas_cli(config: str | None, species: str = "all"):
     configuration = open_config_file(config)
 
     download_data_from_adas(configuration)
-    datasets = read_rate_coefficientss(configuration)
+    datasets = read_rate_coefficients(configuration)
 
     if species == "all":
         with mp.Pool() as pool:
             pool.map(run_radas_computation, [ds for ds in datasets.values()])
-    else:
+    elif species != "none":
         run_radas_computation(datasets[species])
+    
+    if plot:
+        compare_radas_to_mavrin()
 
 
 def download_data_from_adas(configuration: dict):
@@ -54,14 +59,14 @@ def download_data_from_adas(configuration: dict):
             )
 
 
-def read_rate_coefficientss(configuration: dict):
+def read_rate_coefficients(configuration: dict):
     """Builds datasets containing the rate coefficients for each species."""
     datasets = dict()
     output_directory.mkdir(exist_ok=True, parents=True)
 
     for species_name, species_config in configuration["species"].items():
         if "data_files" in species_config:
-            datasets[species_name] = read_rate_coefficients(species_name, configuration)
+            datasets[species_name] = read_rate_coeff(species_name, configuration)
 
     return datasets
 
@@ -92,4 +97,5 @@ def run_radas_computation(dataset: xr.Dataset):
         dataset, dataset.equilibrium_charge_state_fraction
     )
 
+    output_directory.mkdir(exist_ok=True)
     dataset.pint.dequantify().to_netcdf(output_directory / f"{dataset.species_name}.nc")

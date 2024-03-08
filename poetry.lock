@@ -1312,6 +1312,23 @@ pytest = ">=4.6"
 testing = ["fields", "hunter", "process-tests", "pytest-xdist", "six", "virtualenv"]
 
 [[package]]
+name = "pytest-order"
+version = "1.2.0"
+description = "pytest plugin to run your tests in a specific order"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "pytest-order-1.2.0.tar.gz", hash = "sha256:944f86b6d441aa7b1da80f801c6ab65b84bbeba472d0a7a12eb43ba26650101a"},
+    {file = "pytest_order-1.2.0-py3-none-any.whl", hash = "sha256:9d65c3b6dc6d6ee984d6ae2c6c4aa4f1331e5b915116219075c888c8bcbb93b8"},
+]
+
+[package.dependencies]
+pytest = [
+    {version = ">=5.0", markers = "python_version < \"3.10\""},
+    {version = ">=6.2.4", markers = "python_version >= \"3.10\""},
+]
+
+[[package]]
 name = "python-dateutil"
 version = "2.9.0.post0"
 description = "Extensions to the standard Python datetime module"
@@ -1666,23 +1683,24 @@ files = [
 
 [[package]]
 name = "xarray"
-version = "2023.12.0"
+version = "2024.2.0"
 description = "N-D labeled arrays and datasets in Python"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "xarray-2023.12.0-py3-none-any.whl", hash = "sha256:3c22b6824681762b6c3fcad86dfd18960a617bccbc7f456ce21b43a20e455fb9"},
-    {file = "xarray-2023.12.0.tar.gz", hash = "sha256:4565dbc890de47e278346c44d6b33bb07d3427383e077a7ca8ab6606196fd433"},
+    {file = "xarray-2024.2.0-py3-none-any.whl", hash = "sha256:a31a9b37e39bd5aeb098070a75d6dd4d59019eb339d735b86108b9e0cb391f94"},
+    {file = "xarray-2024.2.0.tar.gz", hash = "sha256:a105f02791082c888ebe2622090beaff2e7b68571488d62fe6afdab35b4b717f"},
 ]
 
 [package.dependencies]
-numpy = ">=1.22"
-packaging = ">=21.3"
-pandas = ">=1.4"
+numpy = ">=1.23"
+packaging = ">=22"
+pandas = ">=1.5"
 
 [package.extras]
 accel = ["bottleneck", "flox", "numbagg", "opt-einsum", "scipy"]
-complete = ["xarray[accel,io,parallel,viz]"]
+complete = ["xarray[accel,dev,io,parallel,viz]"]
+dev = ["hypothesis", "pre-commit", "pytest", "pytest-cov", "pytest-env", "pytest-timeout", "pytest-xdist", "ruff", "xarray[complete]"]
 io = ["cftime", "fsspec", "h5netcdf", "netCDF4", "pooch", "pydap", "scipy", "zarr"]
 parallel = ["dask[complete]"]
 viz = ["matplotlib", "nc-time-axis", "seaborn"]
@@ -1705,4 +1723,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "<3.12,>=3.9"
-content-hash = "a6f913d97798afaa1f9749e1f46e45e6ab2fc48a4dcfcfa3dded90a3de4e5e0e"
+content-hash = "ea0a9a72e46cb41482224f73d98c0326021b647512e8c476b43c765b5ee4bf3c"
