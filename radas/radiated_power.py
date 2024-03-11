@@ -5,7 +5,7 @@ from radas.unit_handling import convert_units, ureg
 def calculate_Lz(
     dataset: xr.Dataset, charge_state_fraction: xr.DataArray
 ) -> xr.DataArray:
-    """Calculate the radiation rate prefactor due to electron-impurity interactions.
+    """Calculate the radiated power prefactor due to electron-impurity interactions.
 
     You can calculate P_rad_electron = n_e * n_z * electron_emission
     where n_z = impurity density summed over charge states

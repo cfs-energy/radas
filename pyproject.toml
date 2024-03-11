@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "radas"
 version = "1.0.0"
-description = "Plasma radiation calculated using OpenADAS"
+description = "Plasma radiated power calculated using OpenADAS"
 authors = ["Commonwealth Fusion Systems"]
 readme = "README.md"
 
@@ -20,6 +20,7 @@ pint-xarray = "^0.3"
 click = "^8.1.7"
 black = "^24.2.0"
 pytest-order = "^1.2.0"
+ipdb = "^0.13.13"
 
 
 [tool.poetry.group.dev.dependencies]

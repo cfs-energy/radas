@@ -67,6 +67,7 @@ def magnitude(
             f"No implementation for 'magnitude' with an array of type {type(array)} ({array})"
         )
 
+
 def dimensionless_magnitude(
     array: Union[xr.DataArray, pint.Quantity]
 ) -> Union[npt.NDArray[np.float32], float]:

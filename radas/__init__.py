@@ -26,10 +26,10 @@ from .cli import (
 from .adas_interface import prepare_adas_fortran_interface, download_species_data
 from .read_rate_coeffs import read_rate_coeff
 from .coronal_equilibrium import calculate_coronal_fractional_abundances
-from .radiation import calculate_Lz
+from .radiated_power import calculate_Lz
 from .time_evolution import calculate_time_evolution
 
-__all__=[
+__all__ = [
     "module_directory",
     "repository_directory",
     "data_file_directory",

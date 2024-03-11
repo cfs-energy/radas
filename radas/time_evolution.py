@@ -93,16 +93,12 @@ def calculate_derivative(
     are lost at a rate proportional to their concentration.
     """
     ionisation_to_above = effective_ionisation * charge_state_fraction
-    ionisation_from_below = shift(
-        effective_ionisation * charge_state_fraction, +1
-    )
+    ionisation_from_below = shift(effective_ionisation * charge_state_fraction, +1)
 
     recombination_from_above = effective_recombination * shift(
         charge_state_fraction, -1
     )
-    recombination_to_below = (
-        shift(effective_recombination, +1) * charge_state_fraction
-    )
+    recombination_to_below = shift(effective_recombination, +1) * charge_state_fraction
 
     change_in_charge_state_fraction = np.zeros_like(charge_state_fraction)
     for i in range(len(change_in_charge_state_fraction)):

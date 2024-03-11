@@ -1,10 +1,99 @@
-# RADAS: radiation curves from OpenADAS
+# RADAS: radiated power curves from OpenADAS
 
-This Python library is intended to be a simple interface to ADAS ADF11 files.
+This Python library downloads atomic data from OpenADAS, performs simple calculations and stores the result as a NetCDF file for use in other programs.
 
-## Quickstate
+## Prerequisites
 
+* Python 3.9 or later
+* A Fortran compiler, such as `gfortran`
+* The `poetry` packaging and dependency manager
+
+## Installation
+
+The project is installed using [poetry](https://python-poetry.org/). If you haven't already installed poetry, the installation instructions can be found [here](https://python-poetry.org/docs/#installing-with-the-official-installer).
+
+Once you have poetry installed, you can install `radas` by running
 ```
 poetry install
-poetry run radas --species=hydrogen
 ```
+
+Because we've added `in-project = true` in `poetry.toml`, the project will install in the `.venv` in the repository directory.
+
+## Usage
+
+Once you have installed `radas`, you should be able to run the following snippet
+```
+poetry run radas --species=hydrogen --plot
+```
+where `--species` can be
+* a specific species such as `hydrogen` or `tungsten`
+* `all` which runs all species which have available data
+* `none` which doesn't perform any analysis, but can be combined with `--plot` to generate the output plots from existing NetCDF files
+
+If anything goes wrong, the script will drop into an `ipdb` interpreter so you can debug any issues. 
+
+### What's going on under the hood?
+
+The above snippet executes `run_radas_cli` in `radas/cli.py`, which performs the following steps
+
+1. Connect to [OpenADAS](https://open.adas.ac.uk/)
+2. Download the datasets listed in `radas/config.yaml` under `species:hydrogen:data_files` (where the values are the years to download) and store them in `radas/.data_files`.
+3. Download the fortran source for the dataset readers and store them in `radas/readers`.
+4. Compile the readers using a fortran compiler with `f2py`.
+5. Use the compiled readers to read the downloaded data files and store them in xarray Dataset (in `read_rate_coeffs.py`).
+6. Calculate the fractional abundance of each charge state according to the coronal approximation (in `coronal_equilibrium.py`).
+7. Calculate the coronal mean charge ($\langle Z \rangle$) and radiated power coefficient ($L_z$) as a function of the plasma temperature and density (in `cli.py` for the mean charge and in `radiated_power.py` for the radiated power).
+8. Time-integrate equations for the abundance of each charge state to give the fractional abundance as a function of time $n_z(t)$ for different refuelling rates (characterized by $n_e \tau$ where $\tau$ is a particle residence time, in `time_evolution.py`).
+9. Calculate the equilibrium ($t \to \infty$) mean charge ($\langle Z \rangle$) and radiated power coefficient ($L_z$) as a function of the plasma temperature and density (reusing the same functions as for the coronal values).
+10. Store all of the results in a NetCDF in the `output` folder and make a figure comparing the computed curves to data from *Mavrin, J. Fus. Eng., 2017* (where available).
+
+## Configuration
+
+`radas` is configured using the `config.yaml` file provided in the `radas` source repository. You can edit this file directly, or can point the CLI to another configuration YAML file using the `--config` argument. Regardless of which approach you choose, the `config.yaml` file must have the following structure
+```
+globals:
+  evolution_start:
+    value: <Time to start time-evolution>
+    units: "s"
+
+  evolution_stop:
+    value: <Time to stop time-evolution>
+    units: "s"
+
+  ne_tau:
+    value: <Values of ne * tau to generate output for>
+    units: "m^-3 s"
+
+data_file_config:
+  adf11: #or other reader class, but usually we want ADF11
+    <what to call the dataset in the output>:
+      prefix: <letters used to identify the dataset>
+      code: <code used to identify the dataset for the ADAS reader>
+      stored_units: "cm**3 / s"
+      desired_units: "m**3 / s"
+
+species:
+  <species name>:
+    atomic_symbol: <symbol>
+    atomic_number: <atomic number>
+    data_files:
+      <dataset matching "what to call the dataset in the output" above>: <year to download>
+```
+
+## Testing
+
+To make sure everything is working, run
+```
+poetry run pytest
+```
+to execute all of the tests in the `tests` folder.
+
+The `radas` project includes Fortran code that needs to be compiled into executable readers, which occurs within the source directory of the radas project. In addition, to avoid unnecessary data downloads from OpenADAS, the project checks if required datasets are already available locally before attempting to download them again.
+
+To test these two features in an environment that closely mimics the actual setup without affecting the development environment or leaving behind unnecessary files, the `radas` tests have a few additional complexities.
+
+* Solution with `monkeypatch`: the testing strategy uses `monkeypatch` (a mechanism to dynamically changing modules and environments during test time) to change working and output directories to point to temporary directories. This approach allows the tests to create a functional but isolated copy of radas for testing purposes.
+
+* Use of pytest `tmpdir_factory`: The temporary directories are managed by pytest's `tmpdir_factory`, a feature that generates temporary directories for test functions. These directories are designed to be automatically cleaned up by the system after a certain period, reducing the risk of cluttering the file system with test artifacts.
+
+* Accessing Temporary Directories: If a test fails and there's a need to understand what went wrong, the testing framework prints the path to the temporary directory used for that particular test. This allows developers to inspect the temporary environment, including the compiled readers and any downloaded datasets, to diagnose issues. This will look something like `Temporary repository for testing is at: /private/var/folders/.../pytest-0/test_radas0`

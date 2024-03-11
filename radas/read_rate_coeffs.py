@@ -135,11 +135,12 @@ def build_adf11_rate_dataset(
 
     return ds
 
+
 def align_rates_on_charge_states(dataset: xr.Dataset) -> xr.Dataset:
     """For rates which are for k+1->k reactions, we shift these by one position
     in the dim_charge_state dimension so that the kth position of a rate always
     refers to the reactant species."""
-    
+
     dataset = dataset.pad(
         pad_width=dict(dim_charge_state=(0, 1)), mode="constant", constant_values=0.0
     )
@@ -154,5 +155,5 @@ def align_rates_on_charge_states(dataset: xr.Dataset) -> xr.Dataset:
         "charge_exchange_emission",
     ]:
         dataset[key] = dataset[key].roll(dim_charge_state=+1)
-    
+
     return dataset

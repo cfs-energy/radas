@@ -5,9 +5,18 @@ import sys
 import xarray as xr
 import numpy as np
 import importlib.util
-from radas.cli import download_data_from_adas, read_rate_coefficients, run_radas_computation
-from radas.mavrin_reference import compare_radas_to_mavrin, read_mavrin_data, compute_Mavrin_polynomial_fit
+from radas.cli import (
+    download_data_from_adas,
+    read_rate_coefficients,
+    run_radas_computation,
+)
+from radas.mavrin_reference import (
+    compare_radas_to_mavrin,
+    read_mavrin_data,
+    compute_Mavrin_polynomial_fit,
+)
 from radas.unit_handling import ureg
+
 
 @pytest.fixture()
 def datasets(
@@ -56,6 +65,7 @@ def datasets(
 
     return datasets
 
+
 @pytest.mark.order(1)
 @pytest.mark.filterwarnings("error")
 def test_download_data_from_adas_and_read_rate_coefficients(datasets):
@@ -66,14 +76,18 @@ def test_download_data_from_adas_and_read_rate_coefficients(datasets):
     """
     pass
 
+
 @pytest.mark.order(2)
 @pytest.mark.filterwarnings("error")
-def test_run_radas_computation(monkeypatch, temp_output_directory, datasets, selected_species):
+def test_run_radas_computation(
+    monkeypatch, temp_output_directory, datasets, selected_species
+):
     monkeypatch.setattr(
         "radas.cli.output_directory",
         temp_output_directory,
     )
     run_radas_computation(datasets[selected_species])
+
 
 @pytest.mark.order(3)
 @pytest.mark.filterwarnings("error")
@@ -84,13 +98,16 @@ def test_compare_radas_to_mavrin(monkeypatch, temp_output_directory):
     )
     compare_radas_to_mavrin()
 
+
 @pytest.mark.order(4)
 @pytest.mark.filterwarnings("error")
 def test_compare_to_mavrin(temp_output_directory, selected_species):
 
     mavrin_data = read_mavrin_data()
 
-    ds = xr.open_dataset(temp_output_directory / f"{selected_species}.nc").pint.quantify()
+    ds = xr.open_dataset(
+        temp_output_directory / f"{selected_species}.nc"
+    ).pint.quantify()
     ds = ds.sel(dim_electron_density=1e20, method="nearest")
 
     Te = ds["electron_temp"]
@@ -99,8 +116,14 @@ def test_compare_to_mavrin(temp_output_directory, selected_species):
     Lz_coeffs = mavrin_data[f"{selected_species}_Lz"]
     mean_charge_coeffs = mavrin_data[f"{selected_species}_mean_charge"]
 
-    Lz_mavrin = compute_Mavrin_polynomial_fit(Te, ne_tau, coeff=Lz_coeffs).squeeze().pint.quantify(ureg.W * ureg.m**3)
-    mean_charge_mavrin = compute_Mavrin_polynomial_fit(Te, ne_tau, coeff=mean_charge_coeffs).squeeze()
+    Lz_mavrin = (
+        compute_Mavrin_polynomial_fit(Te, ne_tau, coeff=Lz_coeffs)
+        .squeeze()
+        .pint.quantify(ureg.W * ureg.m**3)
+    )
+    mean_charge_mavrin = compute_Mavrin_polynomial_fit(
+        Te, ne_tau, coeff=mean_charge_coeffs
+    ).squeeze()
 
     Lz_radas = ds["equilibrium_Lz"]
     mean_charge_radas = ds["equilibrium_mean_charge_state"]

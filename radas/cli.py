@@ -1,13 +1,14 @@
 import click
 import xarray as xr
 import multiprocessing as mp
+from ipdb import launch_ipdb_on_exception
 
 from .shared import open_config_file, output_directory
 from .adas_interface import prepare_adas_fortran_interface, download_species_data
 from .read_rate_coeffs import read_rate_coeff
 
 from .coronal_equilibrium import calculate_coronal_fractional_abundances
-from .radiation import calculate_Lz
+from .radiated_power import calculate_Lz
 from .time_evolution import calculate_time_evolution
 from .unit_handling import convert_units, ureg
 from .mavrin_reference import compare_radas_to_mavrin
@@ -17,28 +18,32 @@ from .mavrin_reference import compare_radas_to_mavrin
 @click.option("--config", type=click.Path(exists=True), default=None)
 @click.option("--species", type=str, default="all")
 @click.option("--plot/--no-plot", type=bool, default=False)
-def run_radas_cli(config: str | None, species: str = "all", plot: bool=False):
+def run_radas_cli(config: str | None, species: str = "all", plot: bool = False):
     """Runs the radas program.
-    
+
     If config is given, it must point to a config.yaml file. Otherwise, a
     default config.yaml (stored in the module directory) is used.
 
     If species is given, it must be a valid species name (i.e. 'hydrogen').
     Otherwise, all valid species in the config.yaml file are evaluated.
     """
-    configuration = open_config_file(config)
+    with launch_ipdb_on_exception():
 
-    download_data_from_adas(configuration)
-    datasets = read_rate_coefficients(configuration)
+        if species == "none":
+            pass
+        else:
+            configuration = open_config_file(config)
+            download_data_from_adas(configuration)
+            datasets = read_rate_coefficients(configuration)
 
-    if species == "all":
-        with mp.Pool() as pool:
-            pool.map(run_radas_computation, [ds for ds in datasets.values()])
-    elif species != "none":
-        run_radas_computation(datasets[species])
-    
-    if plot:
-        compare_radas_to_mavrin()
+            if species == "all":
+                with mp.Pool() as pool:
+                    pool.map(run_radas_computation, [ds for ds in datasets.values()])
+            else:
+                run_radas_computation(datasets[species])
+
+        if plot:
+            compare_radas_to_mavrin()
 
 
 def download_data_from_adas(configuration: dict):
@@ -87,8 +92,8 @@ def run_radas_computation(dataset: xr.Dataset):
         dataset.ne_tau / dataset.electron_density, ureg.s
     )
     dataset["charge_state_evolution"] = calculate_time_evolution(dataset)
-    dataset["equilibrium_charge_state_fraction"] = (
-        dataset.charge_state_evolution.isel(dim_time=-1)
+    dataset["equilibrium_charge_state_fraction"] = dataset.charge_state_evolution.isel(
+        dim_time=-1
     )
     dataset["equilibrium_mean_charge_state"] = (
         dataset.equilibrium_charge_state_fraction * dataset.dim_charge_state
