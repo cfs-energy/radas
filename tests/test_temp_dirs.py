@@ -8,17 +8,17 @@ def test_moddir_monkeypatch(monkeypatch, temp_module_directory):
     assert (temp_module_directory / "config.yaml").exists()
 
 
-def test_open_config_file(monkeypatch, temp_module_directory):
+def test_open_yaml_file(monkeypatch, temp_module_directory):
     monkeypatch.setattr(shared, "module_directory", temp_module_directory)
-    configuration = shared.open_config_file()
+    configuration = shared.open_yaml_file()
 
     assert "globals" in configuration
     assert "data_file_config" in configuration
     assert "species" in configuration
 
 
-def test_open_config_file_from_specified_path(temp_module_directory):
-    configuration = shared.open_config_file(temp_module_directory / "config.yaml")
+def test_open_yaml_file_from_specified_path(temp_module_directory):
+    configuration = shared.open_yaml_file(temp_module_directory / "config.yaml")
 
     assert "globals" in configuration
     assert "data_file_config" in configuration

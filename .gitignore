@@ -162,9 +162,4 @@ cython_debug/
 .DS_Store
 **/*.cpython-39-darwin.so
 test.ipynb
-radas/.data_files/*
-radas/readers/adf11/xxdata_11.tar.gz
-radas/readers/adf11/xxdata_11/*
-output/*.nc
-output/*.png
-radas/data_files/*
+radas_dir/*

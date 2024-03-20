@@ -25,6 +25,7 @@ click = "^8.1.7"
 black = "^24.2.0"
 pytest-order = "^1.2.0"
 ipdb = "^0.13.13"
+importlib-resources = "^6.3.2"
 
 
 [tool.poetry.group.dev.dependencies]

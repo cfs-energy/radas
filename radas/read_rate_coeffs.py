@@ -2,12 +2,12 @@ from .unit_handling import Quantity, ureg, convert_units, dimensionless_magnitud
 from .adas_interface.determine_adas_dataset_type import (
     determine_reader_class_and_config,
 )
-from .shared import data_file_directory, get_git_revision_short_hash
+from .shared import get_git_revision_short_hash
 import xarray as xr
 import numpy as np
 
 
-def read_rate_coeff(species_name, config):
+def read_rate_coeff(reader_dir, data_file_dir, species_name, config):
     """Builds a rate_dataset combining all of the raw data available for a given species."""
     config_for_species = config["species"][species_name]
 
@@ -28,7 +28,7 @@ def read_rate_coeff(species_name, config):
 
             case "adf11":
                 rate_dataset = build_adf11_rate_dataset(
-                    data_file_directory, species_name, dataset_type, dataset_config
+                    reader_dir, data_file_dir, species_name, dataset_type, dataset_config
                 )
             case _:
                 raise NotImplementedError(
@@ -78,17 +78,12 @@ def determine_coordinates(dataset: xr.Dataset, rate_dataset: xr.Dataset):
         )
 
 
-def read_data_from_adf11_file(*args, **kwargs):
-    from .readers import read_adf11_file
-
-    return read_adf11_file(*args, **kwargs)
-
-
 def build_adf11_rate_dataset(
-    data_file_directory, species_name, dataset_type, dataset_config
-):
-    data = read_data_from_adf11_file(
-        data_file_directory, species_name, dataset_type, dataset_config
+    reader_dir, data_file_dir, species_name, dataset_type, dataset_config
+):  
+    from .adas_interface.read_adf11_file import read_adf11_file
+    data = read_adf11_file(
+        reader_dir, data_file_dir, species_name, dataset_type, dataset_config
     )
 
     ds = xr.Dataset()

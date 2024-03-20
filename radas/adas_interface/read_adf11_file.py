@@ -1,16 +1,7 @@
-import numpy as np
-import xarray as xr
-
-import sys
-from pathlib import Path
-
-sys.path.append(str(Path(__file__).parent.absolute()))
-
-import fortran_file_handling
-from adf11 import adf11_reader
+import importlib
 
 def read_adf11_file(
-    data_file_directory, species_name, dataset_type, dataset_config
+    reader_dir, data_file_dir, species_name, dataset_type, dataset_config
 ) -> dict:
     """Open and read an ADF11 OpenADAS file.
 
@@ -87,10 +78,12 @@ def read_adf11_file(
     (l*4)  | lptn       | = .true. => partition block present
            |            | = .false. => partition block not present
     """
-    filename = data_file_directory / f"{species_name}_{dataset_type}.dat"
+    fortran_file_handling = importlib.import_module("fortran_file_handling", package=reader_dir)
+    adf11_reader = importlib.import_module("adf11", package=reader_dir / "adf11")
 
-    if not filename.exists():
-        raise FileNotFoundError(f"{filename} does not exist.")
+    filename = data_file_dir / f"{species_name}_{dataset_type}.dat"
+
+    if not filename.exists(): raise FileNotFoundError(f"{filename} does not exist.")
 
     file_unit = 10
 

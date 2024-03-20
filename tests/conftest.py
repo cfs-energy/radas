@@ -59,7 +59,7 @@ def selected_species():
 @pytest.fixture(scope="session")
 def configuration(temp_module_directory, selected_species):
     "Read in the configuration file from the temporary module."
-    config = shared.open_config_file(temp_module_directory / "config.yaml")
+    config = shared.open_yaml_file(temp_module_directory / "config.yaml")
 
     # Drop everything aside from one species
     config["species"] = {selected_species: config["species"][selected_species]}

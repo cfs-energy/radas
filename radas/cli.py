@@ -1,11 +1,11 @@
 import click
 import xarray as xr
 import multiprocessing as mp
-from ipdb import launch_ipdb_on_exception
 from pathlib import Path
 
-from .shared import open_config_file, output_directory, data_file_directory, module_directory
-from .adas_interface import prepare_adas_fortran_interface, download_species_data
+from .shared import open_yaml_file, default_config_file
+from .adas_interface.prepare_adas_readers import prepare_adas_fortran_interface
+from .adas_interface.download_adas_datasets import download_species_data
 from .read_rate_coeffs import read_rate_coeff
 
 from .coronal_equilibrium import calculate_coronal_fractional_abundances
@@ -16,10 +16,27 @@ from .mavrin_reference import compare_radas_to_mavrin
 
 
 @click.command()
-@click.option("--config", type=click.Path(exists=True), default=None)
-@click.option("--species", type=str, default="all")
-@click.option("--plot/--no-plot", type=bool, default=False)
-def run_radas_cli(config: str | None, species: str = "all", plot: bool = False):
+@click.option("-d", "--directory",
+              type=click.Path(),
+              default=Path("./radas_dir").absolute(),
+              help="Directory for storing work files and outputs. DEFAULT: ./radas_dir"
+)
+@click.option("-c", "--config",
+              type=click.Path(exists=True),
+              default=None,
+              help="Path to a yaml file for configuring radas. DEFAULT: RADAS_DIR/radas/config.yaml"
+)
+@click.option("-s", "--species",
+              type=str,
+              default="all",
+              help="Species to perform analysis for ('species_name'|'all'|'none'). DEFAULT: all"
+)
+@click.option('-v', "--verbose", count=True, help="Write additional output to the command line.")
+def run_radas_cli(directory: Path,
+                  config: str | None,
+                  species: str,
+                  verbose: int,
+                  ):
     """Runs the radas program.
 
     If config is given, it must point to a config.yaml file. Otherwise, a
@@ -28,51 +45,91 @@ def run_radas_cli(config: str | None, species: str = "all", plot: bool = False):
     If species is given, it must be a valid species name (i.e. 'hydrogen').
     Otherwise, all valid species in the config.yaml file are evaluated.
     """
-    with launch_ipdb_on_exception():
+    kwargs = dict(directory=directory, config=config, species=species, verbose=verbose)
+    try:
+        from ipdb import launch_ipdb_on_exception
+        with launch_ipdb_on_exception():
+            run_radas(**kwargs)
+    except ModuleNotFoundError:
+        run_radas(**kwargs)
 
-        if species == "none":
-            print("Skipping computation.")
-        else:
-            print(f"Opening config file at {module_directory / 'config.yaml' if config is None else Path(config)}")
-            configuration = open_config_file(config)
+def run_radas(directory: Path,
+              config: str | None,
+              species: str,
+              verbose: int,
+              ):
+    radas_dir = Path(directory)
+    if verbose: print(f"Running radas in {radas_dir.absolute()}")
+    data_file_dir = radas_dir / "data_files"
+    reader_dir = radas_dir / "readers"
+    output_dir = radas_dir / "output"
+    for path in [radas_dir, data_file_dir, reader_dir, output_dir]:
+        path.mkdir(exist_ok=True)
 
-            print(f"Downloading data from OpenADAS to {data_file_directory.absolute()}")
-            download_data_from_adas(configuration)
+    if species == "none":
+        if verbose: print("Skipping computation.")
+    else:
+        config_file = default_config_file if config is None else Path(config)
+        if verbose: print(f"Opening config file at {config_file}")    
+        configuration = open_yaml_file(config_file)
 
-            print(f"Reading rate coefficients")
-            datasets = read_rate_coefficients(configuration)
+        if verbose: print(f"Downloading data from OpenADAS to {data_file_dir.absolute()}")
 
-            if species == "all":
-                print(f"Processing all species and saving output to {output_directory}")
-                with mp.Pool() as pool:
-                    pool.map(run_radas_computation, [ds for ds in datasets.values()])
-            else:
-                print(f"Processing {species} and saving output to {output_directory}")
-                run_radas_computation(datasets[species])
+        prepare_adas_fortran_interface(reader_dir, config=configuration["data_file_config"], verbose=verbose)
 
-        if plot:
-            print(f"Generating plots and saving output to {output_directory}")
-            compare_radas_to_mavrin()
+        for species_name, species_config in configuration["species"].items():
+            if "data_files" in species_config:
+                download_species_data(
+                    data_file_dir,
+                    species_name,
+                    species_config,
+                    configuration["data_file_config"],
+                    verbose=verbose
+                )
+
+        if verbose: print(f"Reading rate coefficients")
+        datasets = dict()
+        output_dir.mkdir(exist_ok=True, parents=True)
+
+        for species_name, species_config in configuration["species"].items():
+            if "data_files" in species_config:
+                datasets[species_name] = read_rate_coeff(reader_dir, data_file_dir, species_name, configuration)
+
+        return datasets
+
+        # datasets = read_rate_coefficients(configuration)
+
+    #         if species == "all":
+    #             print(f"Processing all species and saving output to {output_directory}")
+    #             with mp.Pool() as pool:
+    #                 pool.map(run_radas_computation, [ds for ds in datasets.values()])
+    #         else:
+    #             print(f"Processing {species} and saving output to {output_directory}")
+    #             run_radas_computation(datasets[species])
+
+    #     if plot:
+    #         print(f"Generating plots and saving output to {output_directory}")
+    #         compare_radas_to_mavrin()
         
-        print("Done")
+    #     print("Done")
 
 
-def download_data_from_adas(configuration: dict):
-    """Connect to OpenADAS and download the datasets requested in the configuration file.
+# def download_data_from_adas(configuration: dict):
+#     """Connect to OpenADAS and download the datasets requested in the configuration file.
 
-    config: if not given, uses the config.yaml file in the radas folder.
-            You can optionally pass the path to a modified file, for instance
-            if you want to change the datasets downloaded.
-    """
-    prepare_adas_fortran_interface(configuration["data_file_config"])
+#     config: if not given, uses the config.yaml file in the radas folder.
+#             You can optionally pass the path to a modified file, for instance
+#             if you want to change the datasets downloaded.
+#     """
+#     prepare_adas_fortran_interface(configuration["data_file_config"])
 
-    for species_name, species_config in configuration["species"].items():
-        if "data_files" in species_config:
-            download_species_data(
-                species_name,
-                species_config,
-                configuration["data_file_config"],
-            )
+#     for species_name, species_config in configuration["species"].items():
+#         if "data_files" in species_config:
+#             download_species_data(
+#                 species_name,
+#                 species_config,
+#                 configuration["data_file_config"],
+#             )
 
 
 def read_rate_coefficients(configuration: dict):
