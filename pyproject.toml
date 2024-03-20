@@ -10,7 +10,7 @@ radas = 'radas.cli:run_radas_cli'
 run_radas = 'radas.cli:run_radas_cli'
 
 [tool.poetry.dependencies]
-python = "<3.12,>=3.9"
+python = "<3.13,>=3.9"
 numpy = "^1.26.4"
 scipy = "^1.12.0"
 matplotlib = "^3.8.3"
