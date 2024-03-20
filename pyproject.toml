@@ -5,6 +5,10 @@ description = "Plasma radiated power calculated using OpenADAS"
 authors = ["Commonwealth Fusion Systems"]
 readme = "README.md"
 
+exclude = [
+  "radas/data_files/*",
+]
+
 [tool.poetry.scripts]
 radas = 'radas.cli:run_radas_cli'
 

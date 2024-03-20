@@ -41,7 +41,7 @@ def temp_module_directory(temp_repository_directory):
 @pytest.fixture(scope="session")
 def temp_data_file_directory(temp_module_directory):
     "Define a point where we should store ADAS files relative to our temporary module directory."
-    return temp_module_directory / ".data_files"
+    return temp_module_directory / "data_files"
 
 
 @pytest.fixture(scope="session")

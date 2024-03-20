@@ -19,6 +19,8 @@ def prepare_adas_fortran_interface(data_file_config: dict):
 
         if not reader_found:
             build_adas_file_reader(reader_name)
+        else:
+            print(f"Reusing {reader_name}_reader")
 
 
 def build_adas_file_reader(reader_name: str, url_base: str = "https://open.adas.ac.uk"):
@@ -31,8 +33,15 @@ def build_adas_file_reader(reader_name: str, url_base: str = "https://open.adas.
 
     archive_file = f"xxdata_{reader_int}.tar.gz"
     query_path = f"{url_base}/code/{archive_file}"
-    urllib.request.urlretrieve(query_path, output_folder / archive_file)
-    shutil.unpack_archive(output_folder / archive_file, output_folder)
+    output_filename = output_folder / archive_file
+
+    if not output_filename.exists():
+        print(f"Downloading {query_path} to {output_filename}")
+        urllib.request.urlretrieve(query_path, output_filename)
+        print(f"Unpacking {output_filename} into {output_folder}")
+        shutil.unpack_archive(output_filename, output_folder)
+    else:
+        print(f"Reusing {query_path} ({output_filename} already exists)")
 
     fortran_files = [
         str(file)
@@ -42,6 +51,7 @@ def build_adas_file_reader(reader_name: str, url_base: str = "https://open.adas.
 
     fortran_files = fortran_files + [str(output_folder / f"xxdata_{reader_int}.pyf")]
 
+    print(f"Compiling {reader_name}_reader")
     compile_with_f2py(
         files_to_compile=fortran_files,
         module_name=str(f"{reader_name}_reader"),

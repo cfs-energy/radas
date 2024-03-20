@@ -2,8 +2,9 @@ import click
 import xarray as xr
 import multiprocessing as mp
 from ipdb import launch_ipdb_on_exception
+from pathlib import Path
 
-from .shared import open_config_file, output_directory
+from .shared import open_config_file, output_directory, data_file_directory, module_directory
 from .adas_interface import prepare_adas_fortran_interface, download_species_data
 from .read_rate_coeffs import read_rate_coeff
 
@@ -30,20 +31,30 @@ def run_radas_cli(config: str | None, species: str = "all", plot: bool = False):
     with launch_ipdb_on_exception():
 
         if species == "none":
-            pass
+            print("Skipping computation.")
         else:
+            print(f"Opening config file at {module_directory / 'config.yaml' if config is None else Path(config)}")
             configuration = open_config_file(config)
+
+            print(f"Downloading data from OpenADAS to {data_file_directory.absolute()}")
             download_data_from_adas(configuration)
+
+            print(f"Reading rate coefficients")
             datasets = read_rate_coefficients(configuration)
 
             if species == "all":
+                print(f"Processing all species and saving output to {output_directory}")
                 with mp.Pool() as pool:
                     pool.map(run_radas_computation, [ds for ds in datasets.values()])
             else:
+                print(f"Processing {species} and saving output to {output_directory}")
                 run_radas_computation(datasets[species])
 
         if plot:
+            print(f"Generating plots and saving output to {output_directory}")
             compare_radas_to_mavrin()
+        
+        print("Done")
 
 
 def download_data_from_adas(configuration: dict):

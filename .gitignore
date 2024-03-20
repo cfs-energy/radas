@@ -167,3 +167,4 @@ radas/readers/adf11/xxdata_11.tar.gz
 radas/readers/adf11/xxdata_11/*
 output/*.nc
 output/*.png
+radas/data_files/*

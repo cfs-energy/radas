@@ -9,10 +9,6 @@ sys.path.append(str(Path(__file__).parent.absolute()))
 import fortran_file_handling
 from adf11 import adf11_reader
 
-# from . import fortran_file_handling
-# from .adf11 import adf11_reader
-
-
 def read_adf11_file(
     data_file_directory, species_name, dataset_type, dataset_config
 ) -> dict:

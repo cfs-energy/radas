@@ -5,9 +5,10 @@ import subprocess
 import yaml
 
 module_directory = Path(__file__).parent
-data_file_directory = module_directory / ".data_files"
+data_file_directory = module_directory / "data_files"
 repository_directory = module_directory.parent
 output_directory = repository_directory / "output"
+# importlib resources
 
 
 def get_data_file_directory():

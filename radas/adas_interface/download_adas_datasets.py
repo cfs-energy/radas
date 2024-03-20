@@ -26,7 +26,10 @@ def download_species_data(
         query_path = f"{url_base}/download/{reader_class}/{dataset_prefix}{year_key}/{dataset_prefix}{year_key}_{species_key}.dat"
 
         if not output_filename.exists():
+            print(f"Downloading {query_path} to {output_filename}")
             urllib.request.urlretrieve(query_path, output_filename)
+        else:
+            print(f"Reusing {query_path} ({output_filename} already exists)")
 
         if "OPEN-ADAS Error" in output_filename.read_text():
             output_filename.unlink()
