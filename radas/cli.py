@@ -2,6 +2,7 @@ import click
 import xarray as xr
 import multiprocessing as mp
 from pathlib import Path
+from functools import partial
 
 from .shared import open_yaml_file, default_config_file
 from .adas_interface.prepare_adas_readers import prepare_adas_fortran_interface
@@ -27,14 +28,14 @@ from .mavrin_reference import compare_radas_to_mavrin
               help="Path to a yaml file for configuring radas. DEFAULT: RADAS_DIR/radas/config.yaml"
 )
 @click.option("-s", "--species",
-              type=str,
-              default="all",
+              default=("all",),
+              multiple=True,
               help="Species to perform analysis for ('species_name'|'all'|'none'). DEFAULT: all"
 )
 @click.option('-v', "--verbose", count=True, help="Write additional output to the command line.")
 def run_radas_cli(directory: Path,
                   config: str | None,
-                  species: str,
+                  species: list[str],
                   verbose: int,
                   ):
     """Runs the radas program.
@@ -55,30 +56,33 @@ def run_radas_cli(directory: Path,
 
 def run_radas(directory: Path,
               config: str | None,
-              species: str,
+              species: list[str],
               verbose: int,
               ):
+
     radas_dir = Path(directory)
     if verbose: print(f"Running radas in {radas_dir.absolute()}")
     data_file_dir = radas_dir / "data_files"
     reader_dir = radas_dir / "readers"
     output_dir = radas_dir / "output"
+
     for path in [radas_dir, data_file_dir, reader_dir, output_dir]:
         path.mkdir(exist_ok=True)
 
-    if species == "none":
+    if species == ("none",):
         if verbose: print("Skipping computation.")
     else:
         config_file = default_config_file if config is None else Path(config)
         if verbose: print(f"Opening config file at {config_file}")    
         configuration = open_yaml_file(config_file)
 
-        if verbose: print(f"Downloading data from OpenADAS to {data_file_dir.absolute()}")
-
         prepare_adas_fortran_interface(reader_dir, config=configuration["data_file_config"], verbose=verbose)
 
+        if verbose: print(f"Downloading data from OpenADAS to {data_file_dir.absolute()}")
         for species_name, species_config in configuration["species"].items():
-            if "data_files" in species_config:
+            if "data_files" in species_config and (
+                (species_name in species) or (species == ("all",))
+            ):
                 download_species_data(
                     data_file_dir,
                     species_name,
@@ -92,62 +96,30 @@ def run_radas(directory: Path,
         output_dir.mkdir(exist_ok=True, parents=True)
 
         for species_name, species_config in configuration["species"].items():
-            if "data_files" in species_config:
+            if "data_files" in species_config and (
+                (species_name in species) or (species == ("all",))
+            ):
                 datasets[species_name] = read_rate_coeff(reader_dir, data_file_dir, species_name, configuration)
 
-        return datasets
+        with mp.Pool() as pool:
+            if species != ("all",):
+                datasets = {species_name: datasets[species_name] for species_name in species}
 
-        # datasets = read_rate_coefficients(configuration)
+            pool.map(partial(run_radas_computation,
+                                output_dir=output_dir,
+                                verbose=verbose
+                                ), [(ds) for ds in datasets.values()])
 
-    #         if species == "all":
-    #             print(f"Processing all species and saving output to {output_directory}")
-    #             with mp.Pool() as pool:
-    #                 pool.map(run_radas_computation, [ds for ds in datasets.values()])
-    #         else:
-    #             print(f"Processing {species} and saving output to {output_directory}")
-    #             run_radas_computation(datasets[species])
-
-    #     if plot:
-    #         print(f"Generating plots and saving output to {output_directory}")
-    #         compare_radas_to_mavrin()
+    if verbose: print(f"Generating plots and saving output to {output_dir}")
+    compare_radas_to_mavrin(output_dir)
         
-    #     print("Done")
+    if verbose: print("Done")
 
-
-# def download_data_from_adas(configuration: dict):
-#     """Connect to OpenADAS and download the datasets requested in the configuration file.
-
-#     config: if not given, uses the config.yaml file in the radas folder.
-#             You can optionally pass the path to a modified file, for instance
-#             if you want to change the datasets downloaded.
-#     """
-#     prepare_adas_fortran_interface(configuration["data_file_config"])
-
-#     for species_name, species_config in configuration["species"].items():
-#         if "data_files" in species_config:
-#             download_species_data(
-#                 species_name,
-#                 species_config,
-#                 configuration["data_file_config"],
-#             )
-
-
-def read_rate_coefficients(configuration: dict):
-    """Builds datasets containing the rate coefficients for each species."""
-    datasets = dict()
-    output_directory.mkdir(exist_ok=True, parents=True)
-
-    for species_name, species_config in configuration["species"].items():
-        if "data_files" in species_config:
-            datasets[species_name] = read_rate_coeff(species_name, configuration)
-
-    return datasets
-
-
-def run_radas_computation(dataset: xr.Dataset):
+def run_radas_computation(dataset: xr.Dataset, output_dir: Path, verbose: int):
     """Calculate several dependent quantities based on the atomic rates, and store
     the result as a NetCDF file.
     """
+    if verbose: print(f"Running computation for {dataset.species_name}")
 
     dataset["coronal_charge_state_fraction"] = calculate_coronal_fractional_abundances(
         dataset
@@ -170,5 +142,5 @@ def run_radas_computation(dataset: xr.Dataset):
         dataset, dataset.equilibrium_charge_state_fraction
     )
 
-    output_directory.mkdir(exist_ok=True)
-    dataset.pint.dequantify().to_netcdf(output_directory / f"{dataset.species_name}.nc")
+    output_dir.mkdir(exist_ok=True)
+    dataset.pint.dequantify().to_netcdf(output_dir / f"{dataset.species_name}.nc")

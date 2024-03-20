@@ -1,28 +1,25 @@
 import xarray as xr
-import numpy as np
+from pathlib import Path
 import matplotlib.pyplot as plt
-import warnings
 from .read_mavrin_data import (
     read_mavrin_data,
     compute_Mavrin_polynomial_fit,
-    mavrin_species,
 )
-from ..shared import output_directory
 from ..unit_handling import ureg
 
 
-def compare_radas_to_mavrin():
+def compare_radas_to_mavrin(output_dir: Path):
 
-    for output_file in output_directory.iterdir():
+    for output_file in output_dir.iterdir():
         if output_file.suffix == ".nc":
             species = output_file.stem
-            compare_radas_to_mavrin_per_species(species)
+            compare_radas_to_mavrin_per_species(output_dir, species)
 
 
-def compare_radas_to_mavrin_per_species(species: str):
+def compare_radas_to_mavrin_per_species(output_dir: Path, species: str):
     mavrin_data = read_mavrin_data()
 
-    ds = xr.open_dataset(f"output/{species}.nc").pint.quantify()
+    ds = xr.open_dataset(output_dir / f"{species}.nc").pint.quantify()
     ds = ds.sel(dim_electron_density=1e20, method="nearest")
 
     Te = ds["electron_temp"]
@@ -81,4 +78,4 @@ def compare_radas_to_mavrin_per_species(species: str):
 
     plt.suptitle(species)
 
-    plt.savefig(output_directory / f"{species}.png")
+    plt.savefig(output_dir / f"{species}.png")

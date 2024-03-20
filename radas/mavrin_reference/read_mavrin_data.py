@@ -1,18 +1,12 @@
-from pathlib import Path
-import yaml
 import xarray as xr
 import numpy as np
 import warnings
 from ..unit_handling import ureg, convert_units, magnitude
 
-
 def read_mavrin_data():
+    from ..shared import open_yaml_file, mavrin_data_file
     "Opens the Mavrin dataset from a yaml file."
-    input_file = Path(__file__).parent / "mavrin_data.yml"
-    with open(input_file) as file:
-        mavrin_data = yaml.load(file, Loader=yaml.FullLoader)
-
-    return mavrin_data
+    return open_yaml_file(mavrin_data_file)
 
 
 def mavrin_species():

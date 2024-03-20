@@ -1,4 +1,14 @@
-import importlib
+from pathlib import Path
+import importlib.util
+
+def load_library(library_name: str, filepath: Path):
+    spec = importlib.util.spec_from_file_location(library_name, filepath)
+    
+    library = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(library)
+
+    return library
+
 
 def read_adf11_file(
     reader_dir, data_file_dir, species_name, dataset_type, dataset_config
@@ -78,11 +88,8 @@ def read_adf11_file(
     (l*4)  | lptn       | = .true. => partition block present
            |            | = .false. => partition block not present
     """
-    import sys
-    sys.path.append(str(reader_dir))
-    fortran_file_handling = importlib.import_module("fortran_file_handling", package=reader_dir)
-    sys.path.append(str(reader_dir / "adf11"))
-    adf11_reader = importlib.import_module("adf11_reader", package=reader_dir / "adf11")
+    fortran_file_handling = load_library("fortran_file_handling", reader_dir / "fortran_file_handling.so")
+    adf11_reader = load_library("adf11_reader", reader_dir / "adf11" / "adf11_reader.so")
 
     filename = data_file_dir / f"{species_name}_{dataset_type}.dat"
 

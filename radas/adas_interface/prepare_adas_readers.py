@@ -2,9 +2,9 @@ import urllib.request
 import shutil
 from pathlib import Path
 from .compile_with_f2py import compile_with_f2py
-from ..shared import fortran_file_handling_source, library_extensions, reader_pyf_source
 
 def prepare_adas_fortran_interface(reader_dir: Path, config: dict, verbose: int):
+    from ..shared import fortran_file_handling_source, library_extensions, reader_pyf_source
     
     fortran_file_handling_library = None
     for file in reader_dir.iterdir():

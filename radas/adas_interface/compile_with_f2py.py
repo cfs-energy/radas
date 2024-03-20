@@ -1,12 +1,11 @@
 from pathlib import Path
 import subprocess
 
-from ..shared import library_extensions
-
 def compile_with_f2py(
     files_to_compile: list[str], module_name: str, output_folder: Path,
 ) -> Path:
     """Compiles a list of fortran files into a module."""
+    from ..shared import library_extensions
 
     def compile_fortran_files(quiet: bool):
         command = (
