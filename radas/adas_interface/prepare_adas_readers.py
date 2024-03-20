@@ -69,6 +69,6 @@ def build_adas_file_reader(reader_dir: Path, reader_name: str, verbose: int, url
     if verbose: print(f"Compiling {reader_name}")
     compile_with_f2py(
         files_to_compile=fortran_files,
-        module_name=str(reader_name),
+        module_name=f"{reader_name}_reader",
         output_folder=output_folder,
     )

@@ -78,8 +78,11 @@ def read_adf11_file(
     (l*4)  | lptn       | = .true. => partition block present
            |            | = .false. => partition block not present
     """
+    import sys
+    sys.path.append(str(reader_dir))
     fortran_file_handling = importlib.import_module("fortran_file_handling", package=reader_dir)
-    adf11_reader = importlib.import_module("adf11", package=reader_dir / "adf11")
+    sys.path.append(str(reader_dir / "adf11"))
+    adf11_reader = importlib.import_module("adf11_reader", package=reader_dir / "adf11")
 
     filename = data_file_dir / f"{species_name}_{dataset_type}.dat"
 
