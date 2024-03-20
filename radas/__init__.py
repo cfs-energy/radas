@@ -20,7 +20,7 @@ from .coronal_equilibrium import calculate_coronal_fractional_abundances
 from .radiated_power import calculate_Lz
 from .time_evolution import calculate_time_evolution
 
-__all__=[
+__all__ = [
     "DimensionalityError",
     "UnitStrippedWarning",
     "ureg",

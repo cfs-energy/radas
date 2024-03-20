@@ -28,7 +28,11 @@ def read_rate_coeff(reader_dir, data_file_dir, species_name, config):
 
             case "adf11":
                 rate_dataset = build_adf11_rate_dataset(
-                    reader_dir, data_file_dir, species_name, dataset_type, dataset_config
+                    reader_dir,
+                    data_file_dir,
+                    species_name,
+                    dataset_type,
+                    dataset_config,
                 )
             case _:
                 raise NotImplementedError(
@@ -80,8 +84,9 @@ def determine_coordinates(dataset: xr.Dataset, rate_dataset: xr.Dataset):
 
 def build_adf11_rate_dataset(
     reader_dir, data_file_dir, species_name, dataset_type, dataset_config
-):  
+):
     from .adas_interface.read_adf11_file import read_adf11_file
+
     data = read_adf11_file(
         reader_dir, data_file_dir, species_name, dataset_type, dataset_config
     )

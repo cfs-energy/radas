@@ -17,27 +17,36 @@ from .mavrin_reference import compare_radas_to_mavrin
 
 
 @click.command()
-@click.option("-d", "--directory",
-              type=click.Path(),
-              default=Path("./radas_dir").absolute(),
-              help="Directory for storing work files and outputs. DEFAULT: ./radas_dir"
+@click.option(
+    "-d",
+    "--directory",
+    type=click.Path(),
+    default=Path("./radas_dir").absolute(),
+    help="Directory for storing work files and outputs. DEFAULT: ./radas_dir",
 )
-@click.option("-c", "--config",
-              type=click.Path(exists=True),
-              default=None,
-              help="Path to a yaml file for configuring radas. DEFAULT: RADAS_DIR/radas/config.yaml"
+@click.option(
+    "-c",
+    "--config",
+    type=click.Path(exists=True),
+    default=None,
+    help="Path to a yaml file for configuring radas. DEFAULT: RADAS_DIR/radas/config.yaml",
 )
-@click.option("-s", "--species",
-              default=("all",),
-              multiple=True,
-              help="Species to perform analysis for ('species_name'|'all'|'none'). DEFAULT: all"
+@click.option(
+    "-s",
+    "--species",
+    default=("all",),
+    multiple=True,
+    help="Species to perform analysis for ('species_name'|'all'|'none'). DEFAULT: all",
 )
-@click.option('-v', "--verbose", count=True, help="Write additional output to the command line.")
-def run_radas_cli(directory: Path,
-                  config: str | None,
-                  species: list[str],
-                  verbose: int,
-                  ):
+@click.option(
+    "-v", "--verbose", count=True, help="Write additional output to the command line."
+)
+def run_radas_cli(
+    directory: Path,
+    config: str | None,
+    species: list[str],
+    verbose: int,
+):
     """Runs the radas program.
 
     If config is given, it must point to a config.yaml file. Otherwise, a
@@ -49,19 +58,23 @@ def run_radas_cli(directory: Path,
     kwargs = dict(directory=directory, config=config, species=species, verbose=verbose)
     try:
         from ipdb import launch_ipdb_on_exception
+
         with launch_ipdb_on_exception():
             run_radas(**kwargs)
     except ModuleNotFoundError:
         run_radas(**kwargs)
 
-def run_radas(directory: Path,
-              config: str | None,
-              species: list[str],
-              verbose: int,
-              ):
+
+def run_radas(
+    directory: Path,
+    config: str | None,
+    species: list[str],
+    verbose: int,
+):
 
     radas_dir = Path(directory)
-    if verbose: print(f"Running radas in {radas_dir.absolute()}")
+    if verbose:
+        print(f"Running radas in {radas_dir.absolute()}")
     data_file_dir = radas_dir / "data_files"
     reader_dir = radas_dir / "readers"
     output_dir = radas_dir / "output"
@@ -70,15 +83,20 @@ def run_radas(directory: Path,
         path.mkdir(exist_ok=True)
 
     if species == ("none",):
-        if verbose: print("Skipping computation.")
+        if verbose:
+            print("Skipping computation.")
     else:
         config_file = default_config_file if config is None else Path(config)
-        if verbose: print(f"Opening config file at {config_file}")    
+        if verbose:
+            print(f"Opening config file at {config_file}")
         configuration = open_yaml_file(config_file)
 
-        prepare_adas_fortran_interface(reader_dir, config=configuration["data_file_config"], verbose=verbose)
+        prepare_adas_fortran_interface(
+            reader_dir, config=configuration["data_file_config"], verbose=verbose
+        )
 
-        if verbose: print(f"Downloading data from OpenADAS to {data_file_dir.absolute()}")
+        if verbose:
+            print(f"Downloading data from OpenADAS to {data_file_dir.absolute()}")
         for species_name, species_config in configuration["species"].items():
             if "data_files" in species_config and (
                 (species_name in species) or (species == ("all",))
@@ -88,10 +106,11 @@ def run_radas(directory: Path,
                     species_name,
                     species_config,
                     configuration["data_file_config"],
-                    verbose=verbose
+                    verbose=verbose,
                 )
 
-        if verbose: print(f"Reading rate coefficients")
+        if verbose:
+            print(f"Reading rate coefficients")
         datasets = dict()
         output_dir.mkdir(exist_ok=True, parents=True)
 
@@ -99,27 +118,35 @@ def run_radas(directory: Path,
             if "data_files" in species_config and (
                 (species_name in species) or (species == ("all",))
             ):
-                datasets[species_name] = read_rate_coeff(reader_dir, data_file_dir, species_name, configuration)
+                datasets[species_name] = read_rate_coeff(
+                    reader_dir, data_file_dir, species_name, configuration
+                )
 
         with mp.Pool() as pool:
             if species != ("all",):
-                datasets = {species_name: datasets[species_name] for species_name in species}
+                datasets = {
+                    species_name: datasets[species_name] for species_name in species
+                }
 
-            pool.map(partial(run_radas_computation,
-                                output_dir=output_dir,
-                                verbose=verbose
-                                ), [(ds) for ds in datasets.values()])
+            pool.map(
+                partial(run_radas_computation, output_dir=output_dir, verbose=verbose),
+                [(ds) for ds in datasets.values()],
+            )
 
-    if verbose: print(f"Generating plots and saving output to {output_dir}")
+    if verbose:
+        print(f"Generating plots and saving output to {output_dir}")
     compare_radas_to_mavrin(output_dir)
-        
-    if verbose: print("Done")
+
+    if verbose:
+        print("Done")
+
 
 def run_radas_computation(dataset: xr.Dataset, output_dir: Path, verbose: int):
     """Calculate several dependent quantities based on the atomic rates, and store
     the result as a NetCDF file.
     """
-    if verbose: print(f"Running computation for {dataset.species_name}")
+    if verbose:
+        print(f"Running computation for {dataset.species_name}")
 
     dataset["coronal_charge_state_fraction"] = calculate_coronal_fractional_abundances(
         dataset

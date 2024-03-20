@@ -1,9 +1,10 @@
 from pathlib import Path
 import importlib.util
 
+
 def load_library(library_name: str, filepath: Path):
     spec = importlib.util.spec_from_file_location(library_name, filepath)
-    
+
     library = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(library)
 
@@ -88,12 +89,17 @@ def read_adf11_file(
     (l*4)  | lptn       | = .true. => partition block present
            |            | = .false. => partition block not present
     """
-    fortran_file_handling = load_library("fortran_file_handling", reader_dir / "fortran_file_handling.so")
-    adf11_reader = load_library("adf11_reader", reader_dir / "adf11" / "adf11_reader.so")
+    fortran_file_handling = load_library(
+        "fortran_file_handling", reader_dir / "fortran_file_handling.so"
+    )
+    adf11_reader = load_library(
+        "adf11_reader", reader_dir / "adf11" / "adf11_reader.so"
+    )
 
     filename = data_file_dir / f"{species_name}_{dataset_type}.dat"
 
-    if not filename.exists(): raise FileNotFoundError(f"{filename} does not exist.")
+    if not filename.exists():
+        raise FileNotFoundError(f"{filename} does not exist.")
 
     file_unit = 10
 

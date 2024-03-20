@@ -2,6 +2,7 @@ from pathlib import Path
 import urllib.request
 from .determine_adas_dataset_type import determine_reader_class_and_config
 
+
 def download_species_data(
     data_file_dir: Path,
     species_name: str,
@@ -27,11 +28,16 @@ def download_species_data(
         query_path = f"{url_base}/download/{reader_class}/{dataset_prefix}{year_key}/{dataset_prefix}{year_key}_{species_key}.dat"
 
         if not output_filename.exists():
-            if verbose >= 2: print(f"Downloading {query_path} to {output_filename}")
+            if verbose >= 2:
+                print(f"Downloading {query_path} to {output_filename}")
             urllib.request.urlretrieve(query_path, output_filename)
         else:
-            if verbose >= 2: print(f"Reusing {query_path} ({output_filename} already exists)")
+            if verbose >= 2:
+                print(f"Reusing {query_path} ({output_filename} already exists)")
 
         if "OPEN-ADAS Error" in output_filename.read_text():
             output_filename.unlink()
-            if verbose: print(f"Failed to download the {year} {dataset_prefix} for {species_name}")
+            if verbose:
+                print(
+                    f"Failed to download the {year} {dataset_prefix} for {species_name}"
+                )
