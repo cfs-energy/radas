@@ -8,7 +8,6 @@ def prepare_adas_fortran_interface(reader_dir: Path, config: dict, verbose: int)
     from ..shared import (
         fortran_file_handling_source,
         library_extensions,
-        reader_pyf_source,
     )
 
     fortran_file_handling_library = None
@@ -56,6 +55,7 @@ def build_adas_file_reader(
     url_base: str = "https://open.adas.ac.uk",
 ):
     """Builds an ADAS file reader by wrapping fortran code using f2py."""
+    from ..shared import reader_pyf_source
     assert reader_name.startswith(
         "adf"
     ), f"Reader should be of the format adfXX where XX is an integer"

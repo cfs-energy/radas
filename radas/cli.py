@@ -112,8 +112,6 @@ def run_radas(
         if verbose:
             print(f"Reading rate coefficients")
         datasets = dict()
-        output_dir.mkdir(exist_ok=True, parents=True)
-
         for species_name, species_config in configuration["species"].items():
             if "data_files" in species_config and (
                 (species_name in species) or (species == ("all",))
@@ -122,6 +120,7 @@ def run_radas(
                     reader_dir, data_file_dir, species_name, configuration
                 )
 
+        output_dir.mkdir(exist_ok=True, parents=True)
         with mp.Pool() as pool:
             if species != ("all",):
                 datasets = {

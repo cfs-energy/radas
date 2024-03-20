@@ -1,112 +1,86 @@
 """Run the main integrated radas program."""
 
 import pytest
-import sys
 import xarray as xr
 import numpy as np
-import importlib.util
-from radas.cli import (
-    download_data_from_adas,
-    read_rate_coefficients,
-    run_radas_computation,
-)
-from radas.mavrin_reference import (
-    compare_radas_to_mavrin,
-    read_mavrin_data,
-    compute_Mavrin_polynomial_fit,
-)
-from radas.unit_handling import ureg
-
 
 @pytest.fixture()
-def datasets(
-    monkeypatch,
-    temp_module_directory,
-    temp_data_file_directory,
-    selected_species,
-    configuration,
-):
-    # Download ADAS data to our temporary data file directory
-    monkeypatch.setattr(
-        "radas.adas_interface.download_adas_datasets.data_file_directory",
-        temp_data_file_directory,
-    )
-    # Build the readers in our temporary module
-    monkeypatch.setattr(
-        "radas.adas_interface.prepare_adas_readers.module_directory",
-        temp_module_directory,
-    )
+def configuration():
+    from radas.shared import default_config_file, open_yaml_file
 
-    download_data_from_adas(configuration)
-
-    assert (
-        temp_data_file_directory / f"{selected_species}_effective_ionisation.dat"
-    ).exists()
-    assert (temp_module_directory / "readers" / "adf11" / "xxdata_11").exists()
-
-    def mock_read_adf11_file(*args, **kwargs):
-        """Tell 'read_rate_coeff' to use the adf11 reader in our temporary directory,
-        instead of the one in the current module.
-        """
-        spec = importlib.util.spec_from_file_location(
-            "read_adf11_file", temp_module_directory / "readers" / "read_adf11_file.py"
-        )
-        adf11_module = importlib.util.module_from_spec(spec)
-        sys.modules["read_adf11_file"] = adf11_module
-        spec.loader.exec_module(adf11_module)
-
-        return adf11_module.read_adf11_file(*args, **kwargs)
-
-    monkeypatch.setattr(
-        "radas.read_rate_coeffs.read_data_from_adf11_file", mock_read_adf11_file
-    )
-
-    datasets = read_rate_coefficients(configuration)
-
-    return datasets
-
+    config_file = default_config_file
+    return open_yaml_file(config_file)
 
 @pytest.mark.order(1)
 @pytest.mark.filterwarnings("error")
-def test_download_data_from_adas_and_read_rate_coefficients(datasets):
-    """This test makes sure that the 'datasets' fixture builds correctly.
-
-    'datasets' is a test as well as a fixture, but there doesn't seem to be a good way to
-    make dependent tests.
-    """
+def test_read_yaml(configuration):
     pass
-
 
 @pytest.mark.order(2)
 @pytest.mark.filterwarnings("error")
-def test_run_radas_computation(
-    monkeypatch, temp_output_directory, datasets, selected_species
-):
-    monkeypatch.setattr(
-        "radas.cli.output_directory",
-        temp_output_directory,
-    )
-    run_radas_computation(datasets[selected_species])
+def test_prepare_adas_interface(reader_dir, configuration, verbose):
+    from radas.adas_interface import prepare_adas_fortran_interface
 
+    # Call twice to check if reuse works
+    for i in range(2):
+        prepare_adas_fortran_interface(
+            reader_dir, config=configuration["data_file_config"], verbose=verbose
+        )
 
 @pytest.mark.order(3)
 @pytest.mark.filterwarnings("error")
-def test_compare_radas_to_mavrin(monkeypatch, temp_output_directory):
-    monkeypatch.setattr(
-        "radas.cli.output_directory",
-        temp_output_directory,
-    )
-    compare_radas_to_mavrin()
+def test_download_species_data(data_file_dir, selected_species, configuration, verbose):
+    from radas.adas_interface import download_species_data
+    species_config = configuration["species"][selected_species]
 
+    # Call twice to check if reuse works
+    for i in range(2):
+        download_species_data(
+            data_file_dir,
+            selected_species,
+            species_config,
+            configuration["data_file_config"],
+            verbose=verbose,
+        )
+
+@pytest.fixture()
+def datasets(reader_dir, data_file_dir, selected_species, configuration, verbose):
+    from radas import read_rate_coeff
+    datasets = dict()
+
+    datasets[selected_species] = read_rate_coeff(
+        reader_dir, data_file_dir, selected_species, configuration
+    )
+
+    return datasets
 
 @pytest.mark.order(4)
 @pytest.mark.filterwarnings("error")
-def test_compare_to_mavrin(temp_output_directory, selected_species):
+def test_datasets(datasets):
+    pass
+
+@pytest.mark.order(5)
+@pytest.mark.filterwarnings("error")
+def test_radas_computation(datasets, selected_species, output_dir, verbose):
+    from radas import run_radas_computation
+    run_radas_computation(datasets[selected_species], output_dir, verbose)
+
+@pytest.mark.order(6)
+@pytest.mark.filterwarnings("error")
+def test_compare_radas_to_mavrin(output_dir):
+    from radas.mavrin_reference import compare_radas_to_mavrin
+    compare_radas_to_mavrin(output_dir)
+
+@pytest.mark.order(7)
+@pytest.mark.filterwarnings("error")
+def test_compare_results_to_mavrin_reference(output_dir, selected_species):
+    from radas.mavrin_reference import read_mavrin_data, compute_Mavrin_polynomial_fit
+    from radas.unit_handling import ureg
 
     mavrin_data = read_mavrin_data()
 
     ds = xr.open_dataset(
-        temp_output_directory / f"{selected_species}.nc"
+        output_dir / f"{selected_species}.nc"
     ).pint.quantify()
     ds = ds.sel(dim_electron_density=1e20, method="nearest")
 
@@ -139,3 +113,17 @@ def test_compare_to_mavrin(temp_output_directory, selected_species):
     # Make sure that 90% of the Mavrin and radas <Z> curves are within half of a charge
     # state of each other
     assert (np.abs(mean_charge_mavrin - mean_charge_radas)).quantile(0.9) < 0.5
+
+@pytest.mark.order(8)
+@pytest.mark.filterwarnings("error")
+def test_cli(radas_dir, selected_species):
+    from click.testing import CliRunner
+    from radas.cli import run_radas_cli
+    runner = CliRunner()
+    result = runner.invoke(run_radas_cli, [
+        '-d', str(radas_dir),
+        '-s', selected_species,
+        '-s', 'hydrogen',
+        '-vv'
+    ])
+    assert result.exit_code == 0

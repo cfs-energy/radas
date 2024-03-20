@@ -11,21 +11,6 @@ def read_mavrin_data():
     return open_yaml_file(mavrin_data_file)
 
 
-def mavrin_species():
-    "Returns the list of available species in the Mavrin dataset."
-    mavrin_data = read_mavrin_data()
-
-    keys = mavrin_data.keys()
-
-    species = []
-    for key in keys:
-        species_key = key.removesuffix("_Lz").removesuffix("_mean_charge")
-        if not species_key in species:
-            species.append(species_key)
-
-    return species
-
-
 def compute_Mavrin_polynomial_fit(Te_eV, ne_tau_s_per_m3, coeff):
     """Compute Lz or mean_charge curves from Mavrin, J. Fus. Eng., 2017."""
     return xr.apply_ufunc(

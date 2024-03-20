@@ -5,12 +5,9 @@ description = "Plasma radiated power calculated using OpenADAS"
 authors = ["Commonwealth Fusion Systems"]
 readme = "README.md"
 
-exclude = [
-  "radas/data_files/*",
-]
-
 [tool.poetry.scripts]
 radas = 'radas.cli:run_radas_cli'
+run_radas = 'radas.cli:run_radas_cli'
 
 [tool.poetry.dependencies]
 python = "<3.12,>=3.9"
@@ -22,13 +19,12 @@ pyyaml = "^6.0"
 xarray = "^2024.2.0"
 pint-xarray = "^0.3"
 click = "^8.1.7"
-black = "^24.2.0"
 pytest-order = "^1.2.0"
-ipdb = "^0.13.13"
 importlib-resources = "^6.3.2"
 
-
 [tool.poetry.group.dev.dependencies]
+black = "^24.2.0"
+ipdb = "^0.13.13"
 pytest = "^7.2.1"
 pytest-cov = "^4.1.0"
 coverage = "^7.2.2"
@@ -56,5 +52,5 @@ omit = [
   # These are built and executed at runtime. This is done in
   # a temporary repository. The temporary copies of the reader
   # are covered instead of the actual source files.
-  "radas/readers/*"
+  "radas/adas_interface/source_files/*"
 ]
