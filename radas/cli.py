@@ -170,3 +170,16 @@ def run_radas_computation(dataset: xr.Dataset, output_dir: Path, verbose: int):
 
     output_dir.mkdir(exist_ok=True)
     dataset.pint.dequantify().to_netcdf(output_dir / f"{dataset.species_name}.nc")
+
+@click.command()
+@click.option(
+    "-o",
+    "--output",
+    type=click.Path(),
+    default=Path("./config.yaml").absolute(),
+    help="Output path for a config file. DEFAULT: ./config.yaml",
+)
+def write_config_template(output: Path):
+    print(f"Copying {default_config_file} to {output.absolute()}")
+    Path(output).absolute().write_text(default_config_file.read_text())
+    print("Done")

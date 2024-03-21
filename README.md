@@ -2,24 +2,49 @@
 
 This Python library downloads atomic data from OpenADAS, performs simple calculations and stores the result as a NetCDF file for use in other programs.
 
-## Prerequisites
+## Installing via PyPi (quick start)
+
+`radas` is on PyPi. You should be able to install it using
+```
+pip install radas
+```
+
+Once you've installed `radas` into your environment, you should be able to run
+```
+radas --help
+```
+to get an overview of the CLI options. Every option has a sensible default, so you can just run `radas` at the command line and it will generate a processed NetCDF for every species that has `data_files` defined in `config.yaml`. This can take some time (especially for high-Z impurities such as tungsten). If you'd just like to run a few species, you can specify these on the command line like
+```
+radas -s hydrogen -s helium -s lithium
+```
+
+If you want to change the years of the databases downloaded, you will need to change the `config.yaml` file. To get a copy of this, run `radas_config` to get a copy of the `config.yaml` file in your current working directory. You can edit this file (see the configuration section below) and then use it by passing it as the `-c` or `--config` argument to `radas` (i.e. `radas -s hydrogen -c ./config.yaml`).
+
+## Development installation
+
+If you want to develop `radas`, excellent! For contributing to `radas`, we ask that you
+1. use Issues to ask questions, request features and discuss planned improvements,
+2. use Pull Requests to merge code into `main` (mark work-in-progress with `draft` in the title),
+3. write `pytest` tests for new functionality (ideally aiming to cover all new lines of code).
+
+### Prerequisites
 
 * Python 3.9 or later
 * A Fortran compiler, such as `gfortran`
 * The `poetry` packaging and dependency manager
 
-## Installation
+### Installation
 
 The project is installed using [poetry](https://python-poetry.org/). If you haven't already installed poetry, the installation instructions can be found [here](https://python-poetry.org/docs/#installing-with-the-official-installer).
 
 Once you have poetry installed, you can install `radas` by running
 ```
-poetry install
+poetry install --with dev
 ```
 
 Because we've added `in-project = true` in `poetry.toml`, the project will install in the `.venv` in the repository directory.
 
-## Usage
+### Usage
 
 Once you have installed `radas`, you should be able to run the following snippet
 ```
@@ -32,7 +57,7 @@ where `--species` can be
 
 If anything goes wrong, the script will drop into an `ipdb` interpreter so you can debug any issues. 
 
-### What's going on under the hood?
+#### What's going on under the hood?
 
 The above snippet executes `run_radas_cli` in `radas/cli.py`, which performs the following steps
 
@@ -47,7 +72,7 @@ The above snippet executes `run_radas_cli` in `radas/cli.py`, which performs the
 9. Calculate the equilibrium ($t \to \infty$) mean charge ($\langle Z \rangle$) and radiated power coefficient ($L_z$) as a function of the plasma temperature and density (reusing the same functions as for the coronal values).
 10. Store all of the results in a NetCDF in the `output` folder and make a figure comparing the computed curves to data from *Mavrin, J. Fus. Eng., 2017* (where available).
 
-## Configuration
+### Configuration
 
 `radas` is configured using the `config.yaml` file provided in the `radas` source repository. You can edit this file directly, or can point the CLI to another configuration YAML file using the `--config` argument. Regardless of which approach you choose, the `config.yaml` file must have the following structure
 ```
@@ -80,20 +105,10 @@ species:
       <dataset matching "what to call the dataset in the output" above>: <year to download>
 ```
 
-## Testing
+### Testing
 
 To make sure everything is working, run
 ```
 poetry run pytest
 ```
 to execute all of the tests in the `tests` folder.
-
-The `radas` project includes Fortran code that needs to be compiled into executable readers, which occurs within the source directory of the radas project. In addition, to avoid unnecessary data downloads from OpenADAS, the project checks if required datasets are already available locally before attempting to download them again.
-
-To test these two features in an environment that closely mimics the actual setup without affecting the development environment or leaving behind unnecessary files, the `radas` tests have a few additional complexities.
-
-* Solution with `monkeypatch`: the testing strategy uses `monkeypatch` (a mechanism to dynamically changing modules and environments during test time) to change working and output directories to point to temporary directories. This approach allows the tests to create a functional but isolated copy of radas for testing purposes.
-
-* Use of pytest `tmpdir_factory`: The temporary directories are managed by pytest's `tmpdir_factory`, a feature that generates temporary directories for test functions. These directories are designed to be automatically cleaned up by the system after a certain period, reducing the risk of cluttering the file system with test artifacts.
-
-* Accessing Temporary Directories: If a test fails and there's a need to understand what went wrong, the testing framework prints the path to the temporary directory used for that particular test. This allows developers to inspect the temporary environment, including the compiled readers and any downloaded datasets, to diagnose issues. This will look something like `Temporary repository for testing is at: /private/var/folders/.../pytest-0/test_radas0`

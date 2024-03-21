@@ -13,6 +13,7 @@ from .cli import (
     run_radas_cli,
     run_radas,
     run_radas_computation,
+    write_config_template,
 )
 
 from .read_rate_coeffs import read_rate_coeff
@@ -36,4 +37,5 @@ __all__ = [
     "calculate_coronal_fractional_abundances",
     "calculate_Lz",
     "calculate_time_evolution",
+    "write_config_template",
 ]
