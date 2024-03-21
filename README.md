@@ -112,3 +112,29 @@ To make sure everything is working, run
 poetry run pytest
 ```
 to execute all of the tests in the `tests` folder.
+
+### Pushing to PyPi
+
+To publish the repository to the [PyPi](pypi.org) package index, you can follow the instructions at [RealPython](https://realpython.com/pypi-publish-python-package/), adapted slightly for the poetry project.
+
+First, you should edit `pyproject.toml` and set `version="YYYY.MM.V"`, where `YYYY` is the year, `MM` is the month and `V` is a version tag (reset at zero each month). Then, you can publish to PyPi by running the following
+```
+# Clean up any previous distributions
+rm -rf ./dist
+
+# Install the project
+poetry lock
+poetry install --with dev
+# Make sure the tests all pass!
+poetry run pytest
+
+# Build and check the distribution
+poetry build
+poetry run twine check dist/*
+
+# Test on https://test.pypi.org/ first!
+poetry run twine upload -r testpypi dist/*
+
+# Publish the package to the real Python Package Index
+poetry run twine upload dist/*
+```

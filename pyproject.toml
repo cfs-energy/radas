@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "radas"
 # Version is year.month.version
-version = "2024.3.0"
+version = "2024.3.2"
 description = "Plasma radiated power calculated using OpenADAS"
 authors = ["Commonwealth Fusion Systems"]
 readme = "README.md"
@@ -25,25 +25,25 @@ radas_config = 'radas.cli:write_config_template'
 
 [tool.poetry.dependencies]
 python = "<3.13,>=3.9"
-numpy = "^1.26.4"
-scipy = "^1.12.0"
-matplotlib = "^3.8.3"
-Pint = "^0.23"
+numpy = "^1.22"
+scipy = "^1.8"
+matplotlib = "^3.6"
+Pint = "^0.21"
 pyyaml = "^6.0"
-xarray = "^2024.2.0"
-pint-xarray = "^0.3"
-click = "^8.1.7"
-importlib-resources = "^6.3.2"
+xarray = ">=2023"
+pint-xarray = ">=0.3"
+click = "^8.1"
+importlib-resources = ">=5.10"
 
 [tool.poetry.group.dev.dependencies]
-twine = "^5.0.0"
-black = "^24.2.0"
-ipdb = "^0.13.13"
-pytest = "^7.2.1"
-pytest-order = "^1.2.0"
-pytest-cov = "^4.1.0"
-coverage = "^7.2.2"
-ipykernel = "^6.22.0"
+twine = ">=4.0"
+black = ">=23.0"
+ipdb = "^0.13"
+pytest = "^7.2"
+pytest-order = "^1.1"
+pytest-cov = "^4.1"
+coverage = ">=7.2"
+ipykernel = ">=6.20"
 
 [build-system]
 requires = ["poetry-core"]
