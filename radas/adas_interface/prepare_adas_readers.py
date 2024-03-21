@@ -56,6 +56,7 @@ def build_adas_file_reader(
 ):
     """Builds an ADAS file reader by wrapping fortran code using f2py."""
     from ..shared import reader_pyf_source
+
     assert reader_name.startswith(
         "adf"
     ), f"Reader should be of the format adfXX where XX is an integer"
