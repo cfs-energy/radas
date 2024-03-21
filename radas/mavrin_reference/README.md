@@ -1,1 +1,0 @@
-Test data for checking that `radas` is working correctly.

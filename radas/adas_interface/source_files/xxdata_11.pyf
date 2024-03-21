@@ -1,0 +1,48 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+python module adf11_reader ! in 
+    interface  ! in :adf11_reader
+        subroutine xxdata_11(iunit,iclass,isdimd,iddimd,itdimd,ndptnl,ndptn,ndptnc,ndcnct,iz0,is1min,is1max,nptnl,nptn,nptnc,iptnla,iptna,iptnca,ncnct,icnctv,iblmx,ismax,dnr_ele,dnr_ams,isppr,ispbr,isstgr,idmax,itmax,ddens,dtev,drcof,lres,lstan,lptn) ! in :xxdata_11:xxdata_11.for
+            integer, intent(in) :: iunit
+            integer, intent(in) :: iclass
+            integer, intent(in), :: isdimd
+            integer, intent(in), :: iddimd
+            integer, intent(in), :: itdimd
+            integer, intent(in), :: ndptnl
+            integer, intent(in)  :: ndptn
+            integer, intent(in), :: ndptnc
+            integer, intent(in)  :: ndcnct
+            integer, intent(out) :: iz0
+            integer, intent(out) :: is1min
+            integer, intent(out) :: is1max
+            integer, intent(out) :: nptnl
+            integer, intent(out), dimension(ndptnl) :: nptn
+            integer, intent(out), dimension(ndptnl,ndptn),depend(ndptnl) :: nptnc
+            integer, intent(out), dimension(ndptnl),depend(ndptnl) :: iptnla
+            integer, intent(out), dimension(ndptnl,ndptn),depend(ndptnl,ndptn) :: iptna
+            integer, intent(out), dimension(ndptnl,ndptn,ndptnc),depend(ndptnl,ndptn) :: iptnca
+            integer, intent(out) :: ncnct
+            integer, intent(out), dimension(ndcnct) :: icnctv
+            integer, intent(out) :: iblmx
+            integer, intent(out) :: ismax
+            character*12, intent(out) :: dnr_ele
+            real*8, intent(out) :: dnr_ams
+            integer, intent(out), dimension(isdimd) :: isppr
+            integer, intent(out), dimension(isdimd),depend(isdimd) :: ispbr
+            integer, intent(out), dimension(isdimd),depend(isdimd) :: isstgr
+            integer, intent(out) :: idmax
+            integer, intent(out) :: itmax
+            real*8, intent(out), dimension(iddimd) :: ddens
+            real*8, intent(out), dimension(itdimd) :: dtev
+            real*8, intent(out), dimension(isdimd,itdimd,iddimd),depend(isdimd,itdimd,iddimd) :: drcof
+            logical, intent(out) :: lres
+            logical, intent(out) :: lstan
+            logical, intent(out) :: lptn
+        end subroutine xxdata_11
+    end interface 
+end python module adf11_reader
+
+! This file was auto-generated with f2py (version:1.24.2).
+! See:
+! https://web.archive.org/web/20140822061353/http://cens.ioc.ee/projects/f2py2e
