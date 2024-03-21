@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "radas"
 # Version is year.month.version
-version = "2024.3.2"
+version = "2024.3.0"
 description = "Plasma radiated power calculated using OpenADAS"
 authors = ["Commonwealth Fusion Systems"]
 readme = "README.md"
@@ -33,7 +33,6 @@ pyyaml = "^6.0"
 xarray = ">=2023"
 pint-xarray = ">=0.3"
 click = "^8.1"
-importlib-resources = ">=5.10"
 
 [tool.poetry.group.dev.dependencies]
 twine = ">=4.0"
