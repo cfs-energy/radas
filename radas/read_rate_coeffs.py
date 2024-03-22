@@ -24,20 +24,18 @@ def read_rate_coeff(reader_dir, data_file_dir, species_name, config):
             config["data_file_config"], dataset_type
         )
 
-        match reader_key:
-
-            case "adf11":
-                rate_dataset = build_adf11_rate_dataset(
-                    reader_dir,
-                    data_file_dir,
-                    species_name,
-                    dataset_type,
-                    dataset_config,
-                )
-            case _:
-                raise NotImplementedError(
-                    f"No implementation for reading {reader_key} files."
-                )
+        if reader_key == "adf11":
+            rate_dataset = build_adf11_rate_dataset(
+                reader_dir,
+                data_file_dir,
+                species_name,
+                dataset_type,
+                dataset_config,
+            )
+        else:
+            raise NotImplementedError(
+                f"No implementation for reading {reader_key} files."
+            )
 
         determine_coordinates(dataset, rate_dataset)
         dataset[dataset_type] = rate_dataset.rate_coefficient
