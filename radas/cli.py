@@ -3,6 +3,7 @@ import xarray as xr
 import multiprocessing as mp
 from pathlib import Path
 from functools import partial
+from typing import Optional
 
 from .shared import open_yaml_file, default_config_file
 from .adas_interface.prepare_adas_readers import prepare_adas_fortran_interface
@@ -43,7 +44,7 @@ from .mavrin_reference import compare_radas_to_mavrin
 )
 def run_radas_cli(
     directory: Path,
-    config: str | None,
+    config: Optional[str],
     species: list[str],
     verbose: int,
 ):
@@ -67,7 +68,7 @@ def run_radas_cli(
 
 def run_radas(
     directory: Path,
-    config: str | None,
+    config: Optional[str],
     species: list[str],
     verbose: int,
 ):
