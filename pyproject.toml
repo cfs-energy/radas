@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "radas"
 # Version is year.month.version
-version = "2024.3.0a4"
+version = "2024.3.1"
 description = "Plasma radiated power calculated using OpenADAS"
 authors = ["Commonwealth Fusion Systems"]
 readme = "README.md"
@@ -33,7 +33,6 @@ pyyaml = ">=6.0"
 xarray = ">=2023"
 pint-xarray = ">=0.3"
 click = ">=8.1"
-importlib-resources = {version = "^6.4.0", python = "<=3.9" }
 
 [tool.poetry.group.dev.dependencies]
 # Install pytest into all development environments
