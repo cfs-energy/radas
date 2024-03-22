@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "radas"
 # Version is year.month.version
-version = "2024.3.0a2"
+version = "2024.3.0a4"
 description = "Plasma radiated power calculated using OpenADAS"
 authors = ["Commonwealth Fusion Systems"]
 readme = "README.md"
@@ -24,25 +24,37 @@ run_radas = 'radas.cli:run_radas_cli'
 radas_config = 'radas.cli:write_config_template'
 
 [tool.poetry.dependencies]
-python = "<3.13,>=3.9"
-numpy = "^1.22"
-scipy = "^1.8"
-matplotlib = "^3.6"
-Pint = "^0.21"
-pyyaml = "^6.0"
+python = "<3.12,>=3.9"
+numpy = ">=1.22"
+scipy = ">=1.8"
+matplotlib = ">=3.6"
+Pint = ">=0.21"
+pyyaml = ">=6.0"
 xarray = ">=2023"
 pint-xarray = ">=0.3"
-click = "^8.1"
+click = ">=8.1"
 
 [tool.poetry.group.dev.dependencies]
-twine = ">=4.0"
-black = ">=23.0"
-ipdb = "^0.13"
-pytest = "^7.2"
-pytest-order = "^1.1"
-pytest-cov = "^4.1"
+# Install pytest into all development environments
+# (don't set optional = true)
+pytest = ">=7.2"
+pytest-order = ">=1.1"
+pytest-cov = ">=4.1"
 coverage = ">=7.2"
+black = ">=23.0"
+
+[tool.poetry.group.ipykernel]
+optional = true
+
+[tool.poetry.group.ipykernel.dependencies]
+ipdb = ">=0.13"
 ipykernel = ">=6.20"
+
+[tool.poetry.group.publish]
+optional = true
+
+[tool.poetry.group.publish.dependencies]
+twine = ">=4.0"
 
 [build-system]
 requires = ["poetry-core"]
