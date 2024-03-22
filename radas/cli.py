@@ -87,7 +87,7 @@ def run_radas(
         if verbose:
             print("Skipping computation.")
     else:
-        config_file = default_config_file if config is None else Path(config)
+        config_file = default_config_file if config is None else Path(config).absolute()
         if verbose:
             print(f"Opening config file at {config_file}")
         configuration = open_yaml_file(config_file)
@@ -182,6 +182,7 @@ def run_radas_computation(dataset: xr.Dataset, output_dir: Path, verbose: int):
     help="Output path for a config file. DEFAULT: ./config.yaml",
 )
 def write_config_template(output: Path):
-    print(f"Copying {default_config_file} to {output.absolute()}")
-    Path(output).absolute().write_text(default_config_file.read_text())
+    output = Path(output).absolute()
+    print(f"Copying {default_config_file} to {output}")
+    output.write_text(default_config_file.read_text())
     print("Done")
