@@ -39,7 +39,7 @@ The project is installed using [poetry](https://python-poetry.org/). If you have
 
 Once you have poetry installed, you can install `radas` by running
 ```
-poetry install --with dev
+poetry install
 ```
 
 Because we've added `in-project = true` in `poetry.toml`, the project will install in the `.venv` in the repository directory.
@@ -122,9 +122,9 @@ First, you should edit `pyproject.toml` and set `version="YYYY.MM.V"`, where `YY
 # Clean up any previous distributions
 rm -rf ./dist
 
-# Install the project
+# Install the project without dev dependencies
 poetry lock
-poetry install --with dev
+poetry install --with publish
 # Make sure the tests all pass!
 poetry run pytest
 

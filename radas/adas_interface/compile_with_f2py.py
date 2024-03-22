@@ -13,7 +13,7 @@ def compile_with_f2py(
     def compile_fortran_files(quiet: bool):
         command = (
             ["python3", "-m", "numpy.f2py", "-c"]
-            + files_to_compile
+            + [str(path) for path in files_to_compile]
             + ["-m", module_name]
         )
 

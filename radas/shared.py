@@ -1,7 +1,7 @@
 """Bits and pieces shared by many other parts of radas."""
 
 from pathlib import Path
-from importlib_resources import files
+from importlib.resources import files
 import subprocess
 import yaml
 
