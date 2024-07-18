@@ -42,11 +42,15 @@ from .mavrin_reference import compare_radas_to_mavrin
 @click.option(
     "-v", "--verbose", count=True, help="Write additional output to the command line."
 )
+@click.option(
+    "-m", "--multiprocessing", count=True, help="Use multiprocessing to speed up computation."
+)
 def run_radas_cli(
     directory: Path,
     config: Optional[str],
     species: list[str],
     verbose: int,
+    multiprocessing: bool,
 ):
     """Runs the radas program.
 
@@ -56,7 +60,7 @@ def run_radas_cli(
     If species is given, it must be a valid species name (i.e. 'hydrogen').
     Otherwise, all valid species in the config.yaml file are evaluated.
     """
-    kwargs = dict(directory=directory, config=config, species=species, verbose=verbose)
+    kwargs = dict(directory=directory, config=config, species=species, verbose=verbose, multiprocessing=multiprocessing)
     try:
         from ipdb import launch_ipdb_on_exception
 
@@ -71,6 +75,7 @@ def run_radas(
     config: Optional[str],
     species: list[str],
     verbose: int,
+    multiprocessing: bool,
 ):
 
     radas_dir = Path(directory)
@@ -122,17 +127,19 @@ def run_radas(
                 )
 
         output_dir.mkdir(exist_ok=True, parents=True)
-        with mp.Pool() as pool:
-            if species != ("all",):
-                datasets = {
-                    species_name: datasets[species_name] for species_name in species
-                }
+        if species != ("all",):
+            datasets = {
+                species_name: datasets[species_name] for species_name in species
+            }
 
-            pool.map(
-                partial(run_radas_computation, output_dir=output_dir, verbose=verbose),
-                [(ds) for ds in datasets.values()],
-            )
+        run_computation = partial(run_radas_computation, output_dir=output_dir, verbose=verbose)
 
+        if multiprocessing:
+            with mp.Pool() as pool:
+                pool.map(run_computation, list(datasets.values()))
+        else:
+            for ds in datasets.values():
+                run_computation(ds)
     if verbose:
         print(f"Generating plots and saving output to {output_dir}")
     compare_radas_to_mavrin(output_dir)
