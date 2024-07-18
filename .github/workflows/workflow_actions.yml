@@ -54,44 +54,43 @@ jobs:
           python -m venv test_env
           source ./test_env/bin/activate
           pip install $(find ./dist -name "*.whl")
-          # enter tempdir so import cfspopcon doesn't find the cfspopcon directory
           mkdir tmp_dir && cd tmp_dir
           MPLBACKEND=Agg radas_config -o ./new_config.yaml
           MPLBACKEND=Agg radas -s hydrogen -c ./new_config.yaml
 
-#   build_release:
-#     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-#     needs: build
-#     runs-on: ubuntu-22.04
+  build_release:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+    needs: build
+    runs-on: ubuntu-22.04
 
-#     steps:
-#       - uses: actions/checkout@v3
+    steps:
+      - uses: actions/checkout@v3
 
-#       - name: Install Poetry
-#         run: curl -sSL https://install.python-poetry.org | python - --version 1.8.2
+      - name: Install Poetry
+        run: curl -sSL https://install.python-poetry.org | python - --version 1.8.2
 
-#       - name: Poetry build
-#         run: poetry build
+      - name: Poetry build
+        run: poetry build
 
-#       - uses: actions/upload-artifact@v3
-#         with:
-#           name: pypi-build
-#           path: ./dist
+      - uses: actions/upload-artifact@v3
+        with:
+          name: pypi-build
+          path: ./dist
 
-#   publish:
-#     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-#     needs: build_release
-#     runs-on: ubuntu-22.04
-#     environment:
-#       name: pypi-publish
-#       url: https://pypi.org/project/cfspopcon/
-#     permissions:
-#       id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
-#     steps:
-#       - uses: actions/download-artifact@v3
+  publish:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+    needs: build_release
+    runs-on: ubuntu-22.04
+    environment:
+      name: pypi-publish
+      url: https://pypi.org/project/radas/
+    permissions:
+      id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
+    steps:
+      - uses: actions/download-artifact@v3
 
-#       - name: Publish package distributions to PyPI
-#         uses: pypa/gh-action-pypi-publish@release/v1
-#         with:
-#           packages-dir: pypi-build/
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: pypi-build/
     
