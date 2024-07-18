@@ -11,8 +11,8 @@ def calculate_time_evolution(dataset: xr.Dataset) -> xr.Dataset:
     found to give a good balance of accuracy and speed.
     """
     evaluation_times = np.logspace(
-        np.log10(magnitude(convert_units(dataset.evolution_start, ureg.s))),
-        np.log10(magnitude(convert_units(dataset.evolution_stop, ureg.s))),
+        np.log10(magnitude(convert_units(dataset.evolution_start, ureg.s))).values,
+        np.log10(magnitude(convert_units(dataset.evolution_stop, ureg.s))).values,
     )
 
     def _time_evolve(
