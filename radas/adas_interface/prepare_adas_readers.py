@@ -77,7 +77,7 @@ def build_adas_file_reader(
         urllib.request.urlretrieve(query_path, output_filename)
         if verbose:
             print(f"Unpacking {output_filename} into {output_folder}")
-        shutil.unpack_archive(output_filename, output_folder)
+        shutil.unpack_archive(output_filename, output_folder, filter="data")
     else:
         if verbose:
             print(f"Reusing {query_path} ({output_filename} already exists)")

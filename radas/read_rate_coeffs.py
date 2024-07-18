@@ -46,14 +46,15 @@ def read_rate_coeff(reader_dir, data_file_dir, species_name, config):
 
 
 def write_global_attributes(dataset: xr.Dataset, globals: dict) -> xr.Dataset:
-
     for attribute, value in globals.items():
-
         if isinstance(value, dict):
-            dataset[attribute] = xr.DataArray(
-                Quantity(value["value"], value["units"]),
-                coords={f"dim_{attribute}": value["value"]},
-            )
+            if np.size(value["value"]) > 1:
+                dataset[attribute] = xr.DataArray(
+                    Quantity(value["value"], value["units"]),
+                    coords={f"dim_{attribute}": value["value"]},
+                )
+            else:
+                dataset[attribute] = Quantity(value["value"], value["units"])
         else:
             dataset[attribute] = value
 
