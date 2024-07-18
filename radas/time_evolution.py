@@ -1,7 +1,7 @@
 import numpy as np
 import xarray as xr
 from scipy.integrate import solve_ivp
-from .unit_handling import ureg, convert_units, magnitude
+from .unit_handling import ureg, convert_units, magnitude, magnitude_in_units
 
 
 def calculate_time_evolution(dataset: xr.Dataset) -> xr.Dataset:
@@ -11,8 +11,8 @@ def calculate_time_evolution(dataset: xr.Dataset) -> xr.Dataset:
     found to give a good balance of accuracy and speed.
     """
     evaluation_times = np.logspace(
-        np.log10(magnitude(convert_units(dataset.evolution_start, ureg.s))),
-        np.log10(magnitude(convert_units(dataset.evolution_stop, ureg.s))),
+        np.log10(magnitude_in_units(dataset.evolution_start, ureg.s)).item(),
+        np.log10(magnitude_in_units(dataset.evolution_stop, ureg.s)).item(),
     )
 
     def _time_evolve(
@@ -44,15 +44,13 @@ def calculate_time_evolution(dataset: xr.Dataset) -> xr.Dataset:
 
     charge_state_fraction = xr.apply_ufunc(
         _time_evolve,
-        convert_units(
-            dataset.effective_ionisation, ureg.m**3 / ureg.s
-        ).pint.dequantify(),
-        convert_units(
+        magnitude_in_units(dataset.effective_ionisation, ureg.m**3 / ureg.s),
+        magnitude_in_units(
             dataset.effective_recombination.roll(dim_charge_state=-1),
             ureg.m**3 / ureg.s,
-        ).pint.dequantify(),
-        convert_units(dataset.electron_density, ureg.m**-3).pint.dequantify(),
-        convert_units(dataset.ne_tau, ureg.m**-3 * ureg.s).pint.dequantify(),
+        ),
+        magnitude_in_units(dataset.electron_density, ureg.m**-3),
+        magnitude_in_units(dataset.ne_tau, ureg.m**-3 * ureg.s),
         vectorize=True,
         input_core_dims=[("dim_charge_state",), ("dim_charge_state",), (), ()],
         output_core_dims=[("dim_charge_state", "dim_time")],

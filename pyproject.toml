@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "radas"
 # Version is year.month.version
-version = "2024.3.1"
+version = "2024.7.0"
 description = "Plasma radiated power calculated using OpenADAS"
 authors = ["Commonwealth Fusion Systems"]
 readme = "README.md"
@@ -24,7 +24,7 @@ run_radas = 'radas.cli:run_radas_cli'
 radas_config = 'radas.cli:write_config_template'
 
 [tool.poetry.dependencies]
-python = "<3.12,>=3.9"
+python = "<3.13,>=3.9"
 numpy = ">=1.22"
 scipy = ">=1.8"
 matplotlib = ">=3.6"
@@ -42,6 +42,7 @@ pytest-order = ">=1.1"
 pytest-cov = ">=4.1"
 coverage = ">=7.2"
 black = ">=23.0"
+ipdb = "^0.13.13"
 
 [tool.poetry.group.ipykernel]
 optional = true

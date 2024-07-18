@@ -75,6 +75,13 @@ def dimensionless_magnitude(
     return magnitude(convert_units(array, ureg.dimensionless))
 
 
+def magnitude_in_units(
+    array: Union[xr.DataArray, pint.Quantity], units: Any
+) -> Union[npt.NDArray[np.float32], float]:
+    """Convert the array to the specified units and then return the magnitude."""
+    return magnitude(convert_units(array, units))
+
+
 __all__ = [
     "DimensionalityError",
     "UnitStrippedWarning",
