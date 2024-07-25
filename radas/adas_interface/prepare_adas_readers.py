@@ -2,6 +2,7 @@ import urllib.request
 import shutil
 from pathlib import Path
 from .compile_with_f2py import compile_with_f2py
+from warnings import warn
 
 
 def prepare_adas_fortran_interface(reader_dir: Path, config: dict, verbose: int):
@@ -77,7 +78,12 @@ def build_adas_file_reader(
         urllib.request.urlretrieve(query_path, output_filename)
         if verbose:
             print(f"Unpacking {output_filename} into {output_folder}")
-        shutil.unpack_archive(output_filename, output_folder, filter="data")
+        
+        try:
+            shutil.unpack_archive(output_filename, output_folder, filter="data")
+        except TypeError:
+            warn(f"Ignoring unsupported 'filter' argument for shutil.unpack_archive. This is a potential security risk — we suggest to update your Python version (see https://peps.python.org/pep-0706/)")
+            shutil.unpack_archive(output_filename, output_folder)
     else:
         if verbose:
             print(f"Reusing {query_path} ({output_filename} already exists)")
