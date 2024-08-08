@@ -94,12 +94,12 @@ def build_adf11_rate_dataset(
 
     ds["species"] = species_name
     ds["dataset"] = dataset_type
-    ds["charge"] = data["iz0"]
+    ds["charge"] = data["IZMAX"]
 
     electron_density = convert_units(
-        Quantity(10 ** data["ddens"][: data["idmax"]], ureg.cm**-3), ureg.m**-3
+        Quantity(10 ** data["DDENSD"][: data["IDMAXD"]], ureg.cm**-3), ureg.m**-3
     )
-    electron_temp = Quantity(10 ** data["dtev"][: data["itmax"]], ureg.eV)
+    electron_temp = Quantity(10 ** data["DTEVD"][: data["ITMAXD"]], ureg.eV)
 
     # Use logarithmic quantities to define the coordinates, so that we can interpolate over logarithmic quantities.
     ds["electron_density"] = xr.DataArray(
@@ -112,13 +112,13 @@ def build_adf11_rate_dataset(
     ds["reference_electron_density"] = Quantity(1.0, ureg.m**-3)
     ds["reference_electron_temp"] = Quantity(1.0, ureg.eV)
 
-    ds["number_of_charge_states"] = data["ismax"]
-    charge_state = np.arange(data["ismax"])
+    ds["number_of_charge_states"] = data["IZMAX"]
+    charge_state = np.arange(data["IZMAX"])
     ds["charge_state"] = xr.DataArray(
         charge_state, coords=dict(dim_charge_state=charge_state)
     )
 
-    coefficient = data["drcof"][: data["ismax"], : data["itmax"], : data["idmax"]]
+    coefficient = data["DRCOFD"][: data["IZMAX"], : data["ITMAXD"], : data["IDMAXD"]]
     if dataset_config["code"] <= 9:
         coefficient = 10**coefficient
 
