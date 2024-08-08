@@ -38,13 +38,13 @@ def test_download_species_data(data_file_dir, selected_species, configuration, v
 
 
 @pytest.fixture()
-def datasets(reader_dir, data_file_dir, selected_species, configuration, verbose):
+def datasets(data_file_dir, selected_species, configuration, verbose):
     from radas import read_rate_coeff
 
     datasets = dict()
 
     datasets[selected_species] = read_rate_coeff(
-        reader_dir, data_file_dir, selected_species, configuration
+        data_file_dir, selected_species, configuration
     )
 
     return datasets

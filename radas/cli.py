@@ -89,10 +89,9 @@ def run_radas(
     if verbose:
         print(f"Running radas in {radas_dir.absolute()}")
     data_file_dir = radas_dir / "data_files"
-    reader_dir = radas_dir / "readers"
     output_dir = radas_dir / "output"
 
-    for path in [radas_dir, data_file_dir, reader_dir, output_dir]:
+    for path in [radas_dir, data_file_dir, output_dir]:
         path.mkdir(exist_ok=True)
 
     if species == ("none",):
@@ -126,7 +125,7 @@ def run_radas(
                 (species_name in species) or (species == ("all",))
             ):
                 datasets[species_name] = read_rate_coeff(
-                    reader_dir, data_file_dir, species_name, configuration
+                    data_file_dir, species_name, configuration
                 )
 
         output_dir.mkdir(exist_ok=True, parents=True)

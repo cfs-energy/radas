@@ -7,7 +7,7 @@ import xarray as xr
 import numpy as np
 
 
-def read_rate_coeff(reader_dir, data_file_dir, species_name, config):
+def read_rate_coeff(data_file_dir, species_name, config):
     """Builds a rate_dataset combining all of the raw data available for a given species."""
     config_for_species = config["species"][species_name]
 
@@ -26,7 +26,6 @@ def read_rate_coeff(reader_dir, data_file_dir, species_name, config):
 
         if reader_key == "adf11":
             rate_dataset = build_adf11_rate_dataset(
-                reader_dir,
                 data_file_dir,
                 species_name,
                 dataset_type,
@@ -82,13 +81,11 @@ def determine_coordinates(dataset: xr.Dataset, rate_dataset: xr.Dataset):
 
 
 def build_adf11_rate_dataset(
-    reader_dir, data_file_dir, species_name, dataset_type, dataset_config
+    data_file_dir, species_name, dataset_type, dataset_config
 ):
     from .adas_interface.read_adf11_file import read_adf11_file
 
-    data = read_adf11_file(
-        reader_dir, data_file_dir, species_name, dataset_type, dataset_config
-    )
+    data = read_adf11_file(data_file_dir, species_name, dataset_type)
 
     ds = xr.Dataset()
 

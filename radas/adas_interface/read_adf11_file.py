@@ -14,7 +14,7 @@ def load_library(library_name: str, filepath: Path):
 
 
 def read_adf11_file(
-    reader_dir, data_file_dir, species_name, dataset_type, dataset_config
+    data_file_dir, species_name, dataset_type
 ) -> dict:
     """Open and read an ADF11 OpenADAS file.
     
