@@ -16,13 +16,24 @@ def read_single_values(list_of_lines, format_spec, start_at_line):
     for line_number, line in enumerate(list_of_lines):
         if line_number < start_at_line:
             continue
+        
+        try:
+            values = FReader(f"({format_spec})").read(line)
+        except ValueError as e:
+            message = (
+                f"fortranformat could not read line {line_number}: {line} with format ({format_spec})\n"
+                "Make sure that your format_spec has the correct number of elements, the correct spacing and the correct format for the line.\n"
+                "See https://docs.oracle.com/cd/E19957-01/805-4939/6j4m0vn9f/index.html for reference.\n"
+                f"fortranformat error was: {e}"
+            )
+            raise ValueError(message)
+            
 
-        values = FReader(f"({format_spec})").read(line)
         for value_position, value in enumerate(values):
             if value is not None:
                 yield value, line_number, value_position
 
-def read_1d_array(generator, number_of_values, error_if_read_on_same_line=False):
+def read_1d_array(generator, number_of_values):
     """
     Take number_of_values from the generator and write it into a 1D array
     """
@@ -32,10 +43,9 @@ def read_1d_array(generator, number_of_values, error_if_read_on_same_line=False)
     for i in range(number_of_values):
         value, line_number, value_position = next(generator)
 
-        if i == 0 and error_if_read_on_same_line:
-            assert (
-                value_position == 0
-            ), "Arrays are always defined as starting on a new line, but the first element in this array is not at position 0"
+        if i == 0:
+            assert value_position == 0, \
+                "Arrays are always defined as starting on a new line, but the first element in this array is not at position 0"
 
         array[i] = value
 
