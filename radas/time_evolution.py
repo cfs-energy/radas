@@ -1,7 +1,7 @@
 import numpy as np
 import xarray as xr
 from scipy.integrate import solve_ivp
-from .unit_handling import ureg, convert_units, magnitude, magnitude_in_units
+from .unit_handling import ureg, magnitude_in_units
 
 
 def calculate_time_evolution(dataset: xr.Dataset) -> xr.Dataset:

@@ -7,12 +7,6 @@ import yaml
 
 default_config_file = files("radas").joinpath("config.yaml")
 mavrin_data_file = files("radas.mavrin_reference").joinpath("mavrin_data.yaml")
-fortran_file_handling_source = files("radas.adas_interface.source_files").joinpath(
-    "fortran_file_handling.f90"
-)
-reader_pyf_source = dict(
-    adf11=files("radas.adas_interface.source_files").joinpath("xxdata_11.pyf")
-)
 
 library_extensions = [".a", ".so"]
 

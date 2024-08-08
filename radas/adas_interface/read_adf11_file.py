@@ -2,7 +2,6 @@ from pathlib import Path
 import importlib.util
 from .fortran_reader import FReader, read_single_values, read_1d_array, read_2d_array
 import numpy as np
-from pathlib import Path
 
 
 def load_library(library_name: str, filepath: Path):

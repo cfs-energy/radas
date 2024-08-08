@@ -6,7 +6,6 @@ from functools import partial
 from typing import Optional
 
 from .shared import open_yaml_file, default_config_file
-from .adas_interface.prepare_adas_readers import prepare_adas_fortran_interface
 from .adas_interface.download_adas_datasets import download_species_data
 from .read_rate_coeffs import read_rate_coeff
 
@@ -105,10 +104,6 @@ def run_radas(
             print(f"Opening config file at {config_file}")
         configuration = open_yaml_file(config_file)
 
-        prepare_adas_fortran_interface(
-            reader_dir, config=configuration["data_file_config"], verbose=verbose
-        )
-
         if verbose:
             print(f"Downloading data from OpenADAS to {data_file_dir.absolute()}")
         for species_name, species_config in configuration["species"].items():
@@ -124,7 +119,7 @@ def run_radas(
                 )
 
         if verbose:
-            print(f"Reading rate coefficients")
+            print("Reading rate coefficients")
         datasets = dict()
         for species_name, species_config in configuration["species"].items():
             if "data_files" in species_config and (
