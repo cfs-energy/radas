@@ -30,7 +30,6 @@ If you want to develop `radas`, excellent! For contributing to `radas`, we ask t
 ### Prerequisites
 
 * Python 3.9 or later
-* A Fortran compiler, such as `gfortran`
 * The `poetry` packaging and dependency manager
 
 ### Installation
@@ -63,9 +62,7 @@ The above snippet executes `run_radas_cli` in `radas/cli.py`, which performs the
 
 1. Connect to [OpenADAS](https://open.adas.ac.uk/)
 2. Download the datasets listed in `radas/config.yaml` under `species:hydrogen:data_files` (where the values are the years to download) and store them in `radas/.data_files`.
-3. Download the fortran source for the dataset readers and store them in `radas/readers`.
-4. Compile the readers using a fortran compiler with `f2py`.
-5. Use the compiled readers to read the downloaded data files and store them in xarray Dataset (in `read_rate_coeffs.py`).
+5. Process the downloaded data files and store them in xarray Dataset (in `read_rate_coeffs.py`).
 6. Calculate the fractional abundance of each charge state according to the coronal approximation (in `coronal_equilibrium.py`).
 7. Calculate the coronal mean charge ($\langle Z \rangle$) and radiated power coefficient ($L_z$) as a function of the plasma temperature and density (in `cli.py` for the mean charge and in `radiated_power.py` for the radiated power).
 8. Time-integrate equations for the abundance of each charge state to give the fractional abundance as a function of time $n_z(t)$ for different refuelling rates (characterized by $n_e \tau$ where $\tau$ is a particle residence time, in `time_evolution.py`).
@@ -115,26 +112,4 @@ to execute all of the tests in the `tests` folder.
 
 ### Pushing to PyPi
 
-To publish the repository to the [PyPi](pypi.org) package index, you can follow the instructions at [RealPython](https://realpython.com/pypi-publish-python-package/), adapted slightly for the poetry project.
-
-First, you should edit `pyproject.toml` and set `version="YYYY.MM.V"`, where `YYYY` is the year, `MM` is the month and `V` is a version tag (reset at zero each month). Then, you can publish to PyPi by running the following
-```
-# Clean up any previous distributions
-rm -rf ./dist
-
-# Install the project without dev dependencies
-poetry lock
-poetry install --with publish
-# Make sure the tests all pass!
-poetry run pytest
-
-# Build and check the distribution
-poetry build
-poetry run twine check dist/*
-
-# Test on https://test.pypi.org/ first!
-poetry run twine upload -r testpypi dist/*
-
-# Publish the package to the real Python Package Index
-poetry run twine upload dist/*
-```
+To update the version of `radas` at [pypi.org/project/radas/](https://pypi.org/project/radas/), you should edit `pyproject.toml` and set `version="YYYY.MM.V"`, where `YYYY` is the year, `MM` is the month and `V` is a version tag (reset at zero each month). Then, tag a new release and Github Actions will automatically push this to pypi.
