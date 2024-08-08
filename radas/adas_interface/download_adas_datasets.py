@@ -14,15 +14,23 @@ def download_species_data(
     """Downloads all of the data files for a specific species."""
     data_file_dir.mkdir(exist_ok=True, parents=True)
 
-    for dataset_type, year in species_config["data_files"].items():
+    for dataset_type, file_to_download in species_config["data_files"].items():
 
         reader_class, dataset_config = determine_reader_class_and_config(
             data_file_config, dataset_type
         )
 
+        if isinstance(file_to_download, int):
+            species_key = species_config["atomic_symbol"].lower()
+            year = file_to_download
+        elif isinstance(file_to_download, list) and len(file_to_download) == 2:
+            species_key = file_to_download[0].lower()
+            year = file_to_download[1]
+        else:
+            raise NotImplementedError(f"Could not process entry: {file_to_download} for {species_name} {dataset_type}")
+
         year_key = f"{year}"[-2:]
         dataset_prefix = dataset_config["prefix"].lower()
-        species_key = species_config["atomic_symbol"].lower()
 
         output_filename = data_file_dir / f"{species_name}_{dataset_type}.dat"
         query_path = f"{url_base}/download/{reader_class}/{dataset_prefix}{year_key}/{dataset_prefix}{year_key}_{species_key}.dat"

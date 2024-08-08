@@ -10,7 +10,7 @@ globals:
 
   # electron density (ne) * residence time (tau) (in m^-3 s)
   ne_tau:
-    value: [1.00000000e+16, 1.00000000e+17, 1.00000000e+18, 1.00000000e+19]
+    value: [1.0e+16, 0.5e+17, 1.0e+17, 1.0e+18, 1.0e+19]
     units: "m^-3 s"
 
 data_file_config:
@@ -83,6 +83,7 @@ species:
     atomic_symbol: "H"
     atomic_number:  1
     data_files:
+      # For each dataset, give the year to use
       effective_recombination: 2012
       effective_ionisation: 2012
       line_emission_from_excitation: 2012
@@ -90,6 +91,31 @@ species:
       charge_exchange_cross_coupling: 1996
       charge_exchange_emission: 1996
       mean_ionisation_potential: 1996
+  deuterium:
+    atomic_symbol: "D"
+    atomic_number:  1
+    data_files:
+      # We can use a length-2 list to specific a different
+      # species as well as a year. Here, we use the hydrogen
+      # data for everything except the CX rates.
+      effective_recombination: ["H", 2012]
+      effective_ionisation: ["H", 2012]
+      line_emission_from_excitation: ["H", 2012]
+      recombination_and_bremsstrahlung: ["H", 2012]
+      charge_exchange_cross_coupling: 1996
+      charge_exchange_emission: 1996
+      mean_ionisation_potential: ["H", 1996]
+  tritium:
+    atomic_symbol: "T"
+    atomic_number:  1
+    data_files:
+      effective_recombination: ["H", 2012]
+      effective_ionisation: ["H", 2012]
+      line_emission_from_excitation: ["H", 2012]
+      recombination_and_bremsstrahlung: ["H", 2012]
+      charge_exchange_cross_coupling: 1996
+      charge_exchange_emission: 1996
+      mean_ionisation_potential: ["H", 1996]
   helium:
     atomic_symbol: "He"
     atomic_number:  2
@@ -126,6 +152,14 @@ species:
   boron:
     atomic_symbol: "B"
     atomic_number:  5
+    data_files:
+      effective_recombination: 1989
+      effective_ionisation: 1989
+      line_emission_from_excitation: 1989
+      recombination_and_bremsstrahlung: 1989
+      charge_exchange_cross_coupling: 1989
+      charge_exchange_emission: 1989
+      mean_ionisation_potential: 1989
   carbon:
     atomic_symbol: "C"
     atomic_number:  6
