@@ -6,7 +6,6 @@ from functools import partial
 from typing import Optional
 
 from .shared import open_yaml_file, default_config_file
-from .adas_interface.prepare_adas_readers import prepare_adas_fortran_interface
 from .adas_interface.download_adas_datasets import download_species_data
 from .read_rate_coeffs import read_rate_coeff
 
@@ -90,10 +89,9 @@ def run_radas(
     if verbose:
         print(f"Running radas in {radas_dir.absolute()}")
     data_file_dir = radas_dir / "data_files"
-    reader_dir = radas_dir / "readers"
     output_dir = radas_dir / "output"
 
-    for path in [radas_dir, data_file_dir, reader_dir, output_dir]:
+    for path in [radas_dir, data_file_dir, output_dir]:
         path.mkdir(exist_ok=True)
 
     if species == ("none",):
@@ -104,10 +102,6 @@ def run_radas(
         if verbose:
             print(f"Opening config file at {config_file}")
         configuration = open_yaml_file(config_file)
-
-        prepare_adas_fortran_interface(
-            reader_dir, config=configuration["data_file_config"], verbose=verbose
-        )
 
         if verbose:
             print(f"Downloading data from OpenADAS to {data_file_dir.absolute()}")
@@ -124,14 +118,14 @@ def run_radas(
                 )
 
         if verbose:
-            print(f"Reading rate coefficients")
+            print("Reading rate coefficients")
         datasets = dict()
         for species_name, species_config in configuration["species"].items():
             if "data_files" in species_config and (
                 (species_name in species) or (species == ("all",))
             ):
                 datasets[species_name] = read_rate_coeff(
-                    reader_dir, data_file_dir, species_name, configuration
+                    data_file_dir, species_name, configuration
                 )
 
         output_dir.mkdir(exist_ok=True, parents=True)

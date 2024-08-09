@@ -21,18 +21,6 @@ def test_read_yaml(configuration):
 
 @pytest.mark.order(2)
 @pytest.mark.filterwarnings("error")
-def test_prepare_adas_interface(reader_dir, configuration, verbose):
-    from radas.adas_interface import prepare_adas_fortran_interface
-
-    # Call twice to check if reuse works
-    for i in range(2):
-        prepare_adas_fortran_interface(
-            reader_dir, config=configuration["data_file_config"], verbose=verbose
-        )
-
-
-@pytest.mark.order(3)
-@pytest.mark.filterwarnings("error")
 def test_download_species_data(data_file_dir, selected_species, configuration, verbose):
     from radas.adas_interface import download_species_data
 
@@ -50,25 +38,25 @@ def test_download_species_data(data_file_dir, selected_species, configuration, v
 
 
 @pytest.fixture()
-def datasets(reader_dir, data_file_dir, selected_species, configuration, verbose):
+def datasets(data_file_dir, selected_species, configuration, verbose):
     from radas import read_rate_coeff
 
     datasets = dict()
 
     datasets[selected_species] = read_rate_coeff(
-        reader_dir, data_file_dir, selected_species, configuration
+        data_file_dir, selected_species, configuration
     )
 
     return datasets
 
 
-@pytest.mark.order(4)
+@pytest.mark.order(3)
 @pytest.mark.filterwarnings("error")
 def test_datasets(datasets):
     pass
 
 
-@pytest.mark.order(5)
+@pytest.mark.order(4)
 @pytest.mark.filterwarnings("error")
 def test_radas_computation(datasets, selected_species, output_dir, verbose):
     from radas import run_radas_computation
@@ -76,7 +64,7 @@ def test_radas_computation(datasets, selected_species, output_dir, verbose):
     run_radas_computation(datasets[selected_species], output_dir, verbose)
 
 
-@pytest.mark.order(6)
+@pytest.mark.order(5)
 @pytest.mark.filterwarnings("error")
 def test_compare_radas_to_mavrin(output_dir):
     from radas.mavrin_reference import compare_radas_to_mavrin
@@ -84,7 +72,7 @@ def test_compare_radas_to_mavrin(output_dir):
     compare_radas_to_mavrin(output_dir)
 
 
-@pytest.mark.order(7)
+@pytest.mark.order(6)
 @pytest.mark.filterwarnings("error")
 def test_compare_results_to_mavrin_reference(output_dir, selected_species):
     from radas.mavrin_reference import read_mavrin_data, compute_Mavrin_polynomial_fit
@@ -126,7 +114,7 @@ def test_compare_results_to_mavrin_reference(output_dir, selected_species):
     assert (np.abs(mean_charge_mavrin - mean_charge_radas)).quantile(0.9) < 0.5
 
 
-@pytest.mark.order(8)
+@pytest.mark.order(7)
 @pytest.mark.filterwarnings("error")
 def test_cli(radas_dir, selected_species):
     from click.testing import CliRunner

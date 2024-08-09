@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "radas"
 # Version is year.month.version
-version = "2024.7.1"
+version = "2024.8.0"
 description = "Plasma radiated power calculated using OpenADAS"
 authors = ["Commonwealth Fusion Systems"]
 readme = "README.md"
@@ -35,6 +35,7 @@ pint-xarray = ">=0.3"
 click = ">=8.1"
 meson = "^1.5.0"
 ninja = "^1.11.1.1"
+fortranformat = "^2.0.0"
 
 [tool.poetry.group.dev.dependencies]
 # Install pytest into all development environments
@@ -74,12 +75,4 @@ pythonpath = [
 ]
 testpaths = [
   "tests",
-]
-
-[tool.coverage.run]
-omit = [
-  # These are built and executed at runtime. This is done in
-  # a temporary repository. The temporary copies of the reader
-  # are covered instead of the actual source files.
-  "radas/adas_interface/source_files/*"
 ]

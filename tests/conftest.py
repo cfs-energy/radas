@@ -29,12 +29,6 @@ def data_file_dir(radas_dir):
 
 
 @pytest.fixture(scope="session")
-def reader_dir(radas_dir):
-    (radas_dir / "readers").mkdir(exist_ok=False)
-    return radas_dir / "readers"
-
-
-@pytest.fixture(scope="session")
 def output_dir(radas_dir):
     (radas_dir / "output").mkdir(exist_ok=False)
     return radas_dir / "output"

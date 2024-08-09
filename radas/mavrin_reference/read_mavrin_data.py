@@ -44,7 +44,7 @@ def compute_Mavrin_polynomial_fit_single(
     Y = np.log10(ne_tau_s_per_m3 / 1e19)
     if warn and (Y > 0.0):
         warnings.warn(
-            f"Warning: treating points with ne_tau_s_per_m3 > 1e19 m^-3 s as coronal."
+            "Warning: treating points with ne_tau_s_per_m3 > 1e19 m^-3 s as coronal."
         )
     Y = np.minimum(Y, 0.0)
 

@@ -7,7 +7,7 @@ import xarray as xr
 import numpy as np
 
 
-def read_rate_coeff(reader_dir, data_file_dir, species_name, config):
+def read_rate_coeff(data_file_dir, species_name, config):
     """Builds a rate_dataset combining all of the raw data available for a given species."""
     config_for_species = config["species"][species_name]
 
@@ -26,7 +26,6 @@ def read_rate_coeff(reader_dir, data_file_dir, species_name, config):
 
         if reader_key == "adf11":
             rate_dataset = build_adf11_rate_dataset(
-                reader_dir,
                 data_file_dir,
                 species_name,
                 dataset_type,
@@ -82,24 +81,22 @@ def determine_coordinates(dataset: xr.Dataset, rate_dataset: xr.Dataset):
 
 
 def build_adf11_rate_dataset(
-    reader_dir, data_file_dir, species_name, dataset_type, dataset_config
+    data_file_dir, species_name, dataset_type, dataset_config
 ):
     from .adas_interface.read_adf11_file import read_adf11_file
 
-    data = read_adf11_file(
-        reader_dir, data_file_dir, species_name, dataset_type, dataset_config
-    )
+    data = read_adf11_file(data_file_dir, species_name, dataset_type)
 
     ds = xr.Dataset()
 
     ds["species"] = species_name
     ds["dataset"] = dataset_type
-    ds["charge"] = data["iz0"]
+    ds["charge"] = data["IZMAX"]
 
     electron_density = convert_units(
-        Quantity(10 ** data["ddens"][: data["idmax"]], ureg.cm**-3), ureg.m**-3
+        Quantity(10 ** data["DDENSD"][: data["IDMAXD"]], ureg.cm**-3), ureg.m**-3
     )
-    electron_temp = Quantity(10 ** data["dtev"][: data["itmax"]], ureg.eV)
+    electron_temp = Quantity(10 ** data["DTEVD"][: data["ITMAXD"]], ureg.eV)
 
     # Use logarithmic quantities to define the coordinates, so that we can interpolate over logarithmic quantities.
     ds["electron_density"] = xr.DataArray(
@@ -112,13 +109,13 @@ def build_adf11_rate_dataset(
     ds["reference_electron_density"] = Quantity(1.0, ureg.m**-3)
     ds["reference_electron_temp"] = Quantity(1.0, ureg.eV)
 
-    ds["number_of_charge_states"] = data["ismax"]
-    charge_state = np.arange(data["ismax"])
+    ds["number_of_charge_states"] = data["IZMAX"]
+    charge_state = np.arange(data["IZMAX"])
     ds["charge_state"] = xr.DataArray(
         charge_state, coords=dict(dim_charge_state=charge_state)
     )
 
-    coefficient = data["drcof"][: data["ismax"], : data["itmax"], : data["idmax"]]
+    coefficient = data["DRCOFD"][: data["IZMAX"], : data["ITMAXD"], : data["IDMAXD"]]
     if dataset_config["code"] <= 9:
         coefficient = 10**coefficient
 
