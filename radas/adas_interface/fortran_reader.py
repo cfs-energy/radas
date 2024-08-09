@@ -26,7 +26,7 @@ def read_single_values(list_of_lines, format_spec, start_at_line):
                 "See https://docs.oracle.com/cd/E19957-01/805-4939/6j4m0vn9f/index.html for reference.\n"
                 f"fortranformat error was: {e}"
             )
-            raise ValueError(message)
+            raise ValueError(message) from e
             
 
         for value_position, value in enumerate(values):
