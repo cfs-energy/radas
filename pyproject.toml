@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "radas"
 # Version is year.month.version
-version = "2024.7.1"
+version = "2024.8.0"
 description = "Plasma radiated power calculated using OpenADAS"
 authors = ["Commonwealth Fusion Systems"]
 readme = "README.md"
