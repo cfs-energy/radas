@@ -6,13 +6,10 @@ import xarray as xr
 
 from radas.unit_handling import (
     DimensionalityError,
-    UnitStrippedWarning,
     ureg,
     Quantity,
-    suppress_downcast_warning,
     convert_units,
     magnitude,
-    suppress_downcast_warning,
     dimensionless_magnitude,
 )
 
@@ -26,26 +23,6 @@ def test_simple_conversion():
 def test_invalid_conversion():
     with pytest.raises(DimensionalityError):
         Quantity(1.2, ureg.m).to(ureg.W)
-
-
-@pytest.mark.filterwarnings("error")
-def test_suppress_downcast():
-    values = Quantity([1.2, 2.4], ureg.m)
-
-    with pytest.warns(UnitStrippedWarning):
-        np.array(values)
-
-    def unwrapped(input):
-        return np.array(input)
-
-    with pytest.warns(UnitStrippedWarning):
-        unwrapped(values)
-
-    @suppress_downcast_warning
-    def wrapped(input):
-        return np.array(input)
-
-    wrapped(values)
 
 
 @pytest.mark.filterwarnings(
