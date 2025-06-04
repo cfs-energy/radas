@@ -18,7 +18,7 @@ def get_git_revision_short_hash() -> str:
             .decode("ascii")
             .strip()
         )
-    except:
+    except: # noqa:E722
         # If git isn't available (sometimes the case in tests), return a blank
         return ""
 

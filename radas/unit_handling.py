@@ -1,7 +1,5 @@
 """Set up the pint library for unit handling."""
 
-import warnings
-from functools import wraps
 from typing import Any, Union
 
 import numpy as np
@@ -20,22 +18,6 @@ pint.set_application_registry(ureg)
 
 Quantity = ureg.Quantity
 
-
-def suppress_downcast_warning(func):
-    """Suppresses a common warning about downcasting quantities to arrays."""
-
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        with warnings.catch_warnings():
-            warnings.filterwarnings(
-                "ignore",
-                message="The unit of the quantity is stripped when downcasting to ndarray.",
-            )
-            return func(*args, **kwargs)
-
-    return wrapper
-
-
 def convert_units(
     array: Union[xr.DataArray, pint.Quantity], units: Any
 ) -> Union[xr.DataArray, pint.Quantity]:
@@ -53,7 +35,6 @@ def convert_units(
         )
 
 
-@suppress_downcast_warning
 def magnitude(
     array: Union[xr.DataArray, pint.Quantity]
 ) -> Union[npt.NDArray[np.float32], float]:
@@ -89,6 +70,5 @@ __all__ = [
     "Quantity",
     "convert_units",
     "magnitude",
-    "suppress_downcast_warning",
     "dimensionless_magnitude",
 ]
