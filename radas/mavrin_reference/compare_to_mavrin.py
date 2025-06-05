@@ -29,7 +29,6 @@ def compare_radas_to_mavrin_per_species(output_dir: Path, species: str):
         Lz_coeffs = mavrin_data.get(f"{species}_Lz")
         Lz_mavrin = (
             compute_Mavrin_polynomial_fit(Te, ne_tau, coeff=Lz_coeffs)
-            .squeeze()
             .pint.quantify(ureg.W * ureg.m**3)
         )
     else:
@@ -39,7 +38,7 @@ def compare_radas_to_mavrin_per_species(output_dir: Path, species: str):
         mean_charge_coeffs = mavrin_data.get(f"{species}_mean_charge")
         mean_charge_mavrin = compute_Mavrin_polynomial_fit(
             Te, ne_tau, coeff=mean_charge_coeffs
-        ).squeeze()
+        )
     else:
         mean_charge_mavrin = None
 
@@ -60,6 +59,9 @@ def compare_radas_to_mavrin_per_species(output_dir: Path, species: str):
             mean_charge_mavrin.isel(dim_ne_tau=i).plot(
                 ax=axs[1], color=f"C{i}", linestyle="--"
             )
+
+    ds["coronal_Lz"].pint.to(ureg.W * ureg.m**3).plot(ax=axs[0], label="coronal", color="k", linestyle="--")
+    ds["coronal_mean_charge_state"].pint.to(ureg.dimensionless).plot(ax=axs[1], label="coronal", color="k", linestyle="--")
 
     axs[0].legend()
     axs[0].set_yscale("log")
