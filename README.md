@@ -29,7 +29,7 @@ If you want to develop `radas`, excellent! For contributing to `radas`, we ask t
 
 ### Prerequisites
 
-* Python 3.9 or later
+* Python 3.10 or later
 * The `poetry` packaging and dependency manager
 
 ### Installation
