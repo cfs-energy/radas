@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "radas"
 # Version is year.month.version
-version = "2025.6.0"
+version = "2025.6.1"
 description = "Plasma radiated power calculated using OpenADAS"
 authors = ["Commonwealth Fusion Systems"]
 readme = "README.md"
@@ -43,7 +43,6 @@ pytest = ">=7.2"
 pytest-order = ">=1.1"
 pytest-cov = ">=4.1"
 coverage = ">=7.2"
-black = ">=23.0"
 ipdb = ">=0.13.13"
 
 [tool.poetry.group.ipykernel]

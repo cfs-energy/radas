@@ -10,8 +10,14 @@ globals:
 
   # electron density (ne) * residence time (tau) (in m^-3 s)
   ne_tau:
-    value: [1.0e+16, 0.5e+17, 1.0e+17, 1.0e+18, 1.0e+19]
+    value: [0.5e+17]
     units: "m^-3 s"
+  
+  # Number of log-spaced points to use for electron density and electron temp.
+  # Interpolation is used to map from raw data to points.
+  # To disable interpolation, do not provide these inputs.
+  electron_density_resolution: 50
+  electron_temp_resolution: 100
 
 data_file_config:
   adf11:
