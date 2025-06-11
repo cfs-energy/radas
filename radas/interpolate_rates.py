@@ -2,8 +2,9 @@
 import xarray as xr
 import numpy as np
 from scipy.interpolate import RectBivariateSpline
+from numpy.typing import NDArray
 
-def interpolate_array(array: xr.DataArray, new_electron_density, new_electron_temp) -> xr.DataArray:
+def interpolate_array(array: xr.DataArray, new_electron_density: NDArray[np.floating], new_electron_temp: NDArray[np.floating]) -> xr.DataArray:
     """Interpolate array onto new values for the electron density and electron temp.
     
     The interpolation is performed for logarithmic values.
