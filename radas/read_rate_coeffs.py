@@ -3,6 +3,8 @@ from .adas_interface.determine_adas_dataset_type import (
     determine_reader_class_and_config,
 )
 from .shared import get_git_revision_short_hash
+from importlib.metadata import version, PackageNotFoundError
+import datetime
 import xarray as xr
 import numpy as np
 
@@ -11,10 +13,17 @@ def read_rate_coeff(data_file_dir, species_name, config):
     """Builds a rate_dataset combining all of the raw data available for a given species."""
     config_for_species = config["species"][species_name]
 
+    try:
+        radas_version=version("radas")
+    except PackageNotFoundError:
+        radas_version="UNDEFINED"
+    
     dataset = xr.Dataset().assign_attrs(
         atomic_number=config_for_species["atomic_number"],
         species_name=species_name,
         git_hash=get_git_revision_short_hash(),
+        radas_version=radas_version,
+        created=datetime.date.today().strftime("%Y-%b-%d"),
     )
 
     dataset = write_global_attributes(dataset, config["globals"])
