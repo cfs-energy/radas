@@ -20,7 +20,7 @@ def get_git_revision_short_hash() -> str:
         )
     except: # noqa:E722
         # If git isn't available (sometimes the case in tests), return a blank
-        return ""
+        return "UNDEFINED"
 
 
 def open_yaml_file(yaml_file: Path) -> dict:
