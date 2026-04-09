@@ -1,11 +1,12 @@
 import xarray as xr
+import numpy as np
 from pathlib import Path
 import matplotlib.pyplot as plt
 from .read_mavrin_data import (
     read_mavrin_data,
     compute_Mavrin_polynomial_fit,
 )
-from ..unit_handling import ureg
+from ..unit_handling import ureg, magnitude
 
 
 def compare_radas_to_mavrin(output_dir: Path):
@@ -16,7 +17,7 @@ def compare_radas_to_mavrin(output_dir: Path):
             compare_radas_to_mavrin_per_species(output_dir, species)
 
 
-def compare_radas_to_mavrin_per_species(output_dir: Path, species: str):
+def compare_radas_to_mavrin_per_species(output_dir: Path, species: str, max_decades: int = 6):
     mavrin_data = read_mavrin_data()
 
     ds = xr.open_dataset(output_dir / f"{species}.nc").pint.quantify()
@@ -59,16 +60,18 @@ def compare_radas_to_mavrin_per_species(output_dir: Path, species: str):
             mean_charge_mavrin.isel(dim_ne_tau=i).plot(
                 ax=axs[1], color=f"C{i}", linestyle="--"
             )
-
+    
     ds["coronal_Lz"].pint.to(ureg.W * ureg.m**3).plot(ax=axs[0], label="coronal", color="k", linestyle="--")
     ds["coronal_mean_charge_state"].pint.to(ureg.dimensionless).plot(ax=axs[1], label="coronal", color="k", linestyle="--")
 
     axs[0].legend()
     axs[0].set_yscale("log")
-    if Lz_mavrin is not None:
-        axs[0].set_ylim(*Lz_coeffs["ylims"])
-    if mean_charge_mavrin is not None:
-        axs[1].set_ylim(*mean_charge_coeffs["ylims"])
+    
+    Lz_radas_mag = magnitude(Lz_radas)
+    mean_charge_radas_mag = magnitude(mean_charge_radas)
+
+    axs[0].set_ylim(max(np.min(Lz_radas_mag), np.max(Lz_radas_mag) / 10**max_decades) / 2, np.max(Lz_radas_mag) * 2)
+    axs[1].set_ylim(0, np.max(mean_charge_radas_mag) * 1.2)
 
     axs[0].set_title("$L_z$ $[W m^3]$")
     axs[1].set_title("$<Z>$")
@@ -77,7 +80,7 @@ def compare_radas_to_mavrin_per_species(output_dir: Path, species: str):
         ax.set_xscale("log")
         ax.set_xlabel("$T_e$ [$eV$]")
         ax.set_ylabel("")
-
+    
     plt.suptitle(species)
 
     plt.savefig(output_dir / f"{species}.png")
