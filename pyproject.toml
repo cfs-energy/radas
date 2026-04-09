@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "radas"
-# Version is year.month.version
-version = "2025.6.2"
+# Switch from year.month.version to epoch!major.minor.patch
+version = "1!1.0.0"
 description = "Plasma radiated power calculated using OpenADAS"
 authors = ["Commonwealth Fusion Systems"]
 readme = "README.md"
@@ -9,9 +9,8 @@ classifiers = [
 "Development Status :: 5 - Production/Stable",
 "Intended Audience :: Science/Research",
 "Programming Language :: Python :: 3",
-"Programming Language :: Python :: 3.10",
-"Programming Language :: Python :: 3.11",
 "Programming Language :: Python :: 3.12",
+"Programming Language :: Python :: 3.13",
 "Programming Language :: Python :: 3 :: Only",
 "Topic :: Scientific/Engineering :: Physics",
 "License :: OSI Approved :: MIT License",
@@ -23,27 +22,29 @@ run_radas = 'radas.cli:run_radas_cli'
 radas_config = 'radas.cli:write_config_template'
 
 [tool.poetry.dependencies]
-python = ">=3.10"
-numpy = ">=1.22"
-scipy = ">=1.8"
-matplotlib = ">=3.6"
-Pint = ">=0.21"
+python = ">=3.12"
+numpy = "^2.4.4"
+scipy = "^1.17.1"
+matplotlib = "^3.10.8"
+pint = "^0.25.3"
 pyyaml = ">=6.0"
-xarray = ">=2023"
-pint-xarray = ">=0.3"
-click = ">=8.1"
-meson = ">=1.5.0"
-ninja = ">=1.11.1.1"
+xarray = "^2026.2.0"
+pint-xarray = "^0.6.1"
+click = "^8.3.2"
+meson = "^1.10.2"
+ninja = "^1.13.0"
 fortranformat = ">=2.0.0"
+pandas = "^3.0.2"
 
 [tool.poetry.group.dev.dependencies]
 # Install pytest into all development environments
 # (don't set optional = true)
-pytest = ">=7.2"
+pytest = "^9.0.3"
 pytest-order = ">=1.1"
-pytest-cov = ">=4.1"
-coverage = ">=7.2"
+pytest-cov = "^7.1.0"
+coverage = "^7.13.5"
 ipdb = ">=0.13.13"
+ipython = "^9.12.0"
 
 [tool.poetry.group.ipykernel]
 optional = true
