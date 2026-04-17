@@ -27,11 +27,6 @@ If you want to develop `radas`, excellent! For contributing to `radas`, we ask t
 2. use Pull Requests to merge code into `main` (mark work-in-progress with `draft` in the title),
 3. write `pytest` tests for new functionality (ideally aiming to cover all new lines of code).
 
-### Prerequisites
-
-* Python 3.10 or later
-* The `poetry` packaging and dependency manager
-
 ### Installation
 
 The project is installed using [poetry](https://python-poetry.org/). If you haven't already installed poetry, the installation instructions can be found [here](https://python-poetry.org/docs/#installing-with-the-official-installer).
@@ -47,12 +42,12 @@ Because we've added `in-project = true` in `poetry.toml`, the project will insta
 
 Once you have installed `radas`, you should be able to run the following snippet
 ```
-poetry run radas --species=hydrogen --plot
+poetry run radas --species=hydrogen
 ```
 where `--species` can be
 * a specific species such as `hydrogen` or `tungsten`
 * `all` which runs all species which have available data
-* `none` which doesn't perform any analysis, but can be combined with `--plot` to generate the output plots from existing NetCDF files
+* `none` which only regenerates the output plots from existing NetCDF files
 
 If anything goes wrong, the script will drop into an `ipdb` interpreter so you can debug any issues. 
 
@@ -112,4 +107,8 @@ to execute all of the tests in the `tests` folder.
 
 ### Pushing to PyPi
 
-To update the version of `radas` at [pypi.org/project/radas/](https://pypi.org/project/radas/), you should edit `pyproject.toml` and set `version="YYYY.MM.V"`, where `YYYY` is the year, `MM` is the month and `V` is a version tag (reset at zero each month). Then, tag a new release and Github Actions will automatically push this to pypi.
+**We have transitioned from a date-based versioning scheme (YYYY.MM.patch) to Semantic Versioning with an Epoch.**
+
+To update the version of `radas` at [pypi.org/project/radas/](https://pypi.org/project/radas/), you should edit `pyproject.toml` and set `version="1!major.minor.patch"`. You must include the `1!` prefix (the epoch) so that any version takes precedence over the previous date-based versions. Use major versions to indicate breaking changes, such as changing the name of the CLI functions. Use minor versions to indicate non-breaking changes, such as adding new optional functionality. Use patches to make minor fixes.
+
+Once you've merged a new version into `main`, make a new release [on Github](https://github.com/cfs-energy/radas/releases/new) and tag it using the form `v1!X.Y.Z`. Github Actions will automatically push this to PyPI.
