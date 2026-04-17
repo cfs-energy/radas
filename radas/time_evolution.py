@@ -54,7 +54,7 @@ def calculate_time_evolution(dataset: xr.Dataset) -> xr.Dataset:
         vectorize=True,
         input_core_dims=[("dim_charge_state",), ("dim_charge_state",), (), ()],
         output_core_dims=[("dim_charge_state", "dim_time")],
-    ).assign_coords(dim_time=evaluation_times)
+    ).assign_coords(dim_time=evaluation_times).pint.quantify("")
 
     return charge_state_fraction
 

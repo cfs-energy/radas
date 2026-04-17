@@ -1,96 +1,103 @@
-# Largely based on https://github.com/cfs-energy/cfspopcon/blob/main/.github/workflows/workflow_actions.yml
-# This workflow will install Python dependencies and run tests
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+name: CI/CD Pipeline
 
-name: workflow_actions
-
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
-  pull_request: []
   push:
-    tags:
-      - '*'
-    branches:
-      - 'main'
-  # Allows you to run this workflow manually from the Actions tab
+    branches: [main]
+    tags: ['*']
+  pull_request:
+    branches: [main]
   workflow_dispatch:
-    tag: "Manual run"
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-24.04
+  # --- JOB 1: RUN TESTS ---
+  test:
+    name: Test (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.10', '3.11', '3.12']  # should test the versions we allow for in pyproject.toml
+        python-version: ["3.12", "3.13", "3.14"]
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install Poetry
-        run: curl -sSL https://install.python-poetry.org | python - --version 1.8.2
+        run: pipx install "poetry>=2,<3"
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'poetry'
 
-      - name: Setup
-        run: poetry install
+      - name: Install dependencies
+        run: poetry install --with dev
 
-      - name: Tests
-        run: MPLBACKEND=Agg poetry run pytest tests
+      - name: Run Pytest
+        env:
+          MPLBACKEND: Agg
+        run: poetry run pytest
 
-      - name: Test package
+      - name: Smoke test package installation
+        env:
+          MPLBACKEND: Agg
         run: |
-          poetry build -f wheel
+          poetry build
           python -m venv test_env
-          source ./test_env/bin/activate
-          pip install $(find ./dist -name "*.whl")
-          mkdir tmp_dir && cd tmp_dir
-          MPLBACKEND=Agg radas_config -o ./new_config.yaml
-          MPLBACKEND=Agg radas -s hydrogen -c ./new_config.yaml
+          source test_env/bin/activate
+          pip install dist/*.whl
+          radas_config -o ./new_config.yaml
+          radas -s hydrogen -c ./new_config.yaml
 
+  # --- JOB 2: BUILD RELEASE ARTIFACTS ---
   build_release:
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-    needs: build
-    runs-on: ubuntu-24.04
-
+    name: Build Release
+    needs: test
+    if: startsWith(github.ref, 'refs/tags')
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install Poetry
-        run: curl -sSL https://install.python-poetry.org | python - --version 1.8.2
+        run: pipx install "poetry>=2,<3"
 
-      - name: Poetry build
+      - name: Build distributions
         run: poetry build
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v5
         with:
-          name: pypi-build
-          path: ./dist
+          name: pypi-dist
+          path: dist/
+          retention-days: 1
 
+  # --- JOB 3: PUBLISH TO PYPI ---
   publish:
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+    name: Publish to PyPI
     needs: build_release
-    runs-on: ubuntu-22.04
+    if: startsWith(github.ref, 'refs/tags')
+    runs-on: ubuntu-latest
     environment:
       name: pypi-publish
       url: https://pypi.org/project/radas/
     permissions:
-      id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
+      id-token: write 
+    
     steps:
-      - uses: actions/download-artifact@v4
+      - name: Download artifacts
+        uses: actions/download-artifact@v5
+        with:
+          name: pypi-dist
+          path: dist/
 
-      - name: Publish package distributions to PyPI
+      - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: pypi-build/
-    
+          packages-dir: dist/
