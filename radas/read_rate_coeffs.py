@@ -42,7 +42,8 @@ def read_rate_coeff(data_file_dir, species_name, config):
 
         rate_coefficients[dataset_type] = rate_dataset.rate_coefficient
     
-    dataset = xr.merge([v.rename(k) for k, v in rate_coefficients.items()], join='inner')
+    dataset = xr.merge([v.rename(k) for k, v in rate_coefficients.items()],
+                       join=config_for_species.get("join_method", "exact"))
     dataset["electron_density"] = dataset["dim_electron_density"] * reference_electron_density
     dataset["electron_temp"] = dataset["dim_electron_temp"] * reference_electron_temp
 

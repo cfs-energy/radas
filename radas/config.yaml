@@ -307,6 +307,8 @@ species:
       charge_exchange_cross_coupling: 1989
       charge_exchange_emission: 1989
       mean_ionisation_potential: 1989
+    # Ionization/recombination have slightly different electron temp values than line emission. Use inner join to drop missing values, instead of filling in NaNs
+    join_method: "inner"
   rubidium:
     atomic_symbol: "Rb"
     atomic_number: 37
