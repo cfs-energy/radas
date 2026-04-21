@@ -8,6 +8,8 @@ import datetime
 import xarray as xr
 import numpy as np
 
+reference_electron_density = Quantity(1.0, ureg.m**-3)
+reference_electron_temp = Quantity(1.0, ureg.eV)
 
 def read_rate_coeff(data_file_dir, species_name, config):
     """Builds a rate_dataset combining all of the raw data available for a given species."""
@@ -18,15 +20,7 @@ def read_rate_coeff(data_file_dir, species_name, config):
     except PackageNotFoundError:
         radas_version="UNDEFINED"
     
-    dataset = xr.Dataset().assign_attrs(
-        atomic_number=config_for_species["atomic_number"],
-        species_name=species_name,
-        git_hash=get_git_revision_short_hash(),
-        radas_version=radas_version,
-        created=datetime.date.today().strftime("%Y-%b-%d"),
-    )
-
-    dataset = write_global_attributes(dataset, config["globals"])
+    rate_coefficients = dict()
 
     for dataset_type in config_for_species["data_files"].keys():
         reader_key, dataset_config = determine_reader_class_and_config(
@@ -40,15 +34,29 @@ def read_rate_coeff(data_file_dir, species_name, config):
                 dataset_type,
                 dataset_config,
             )
+
         else:
             raise NotImplementedError(
                 f"No implementation for reading {reader_key} files."
             )
 
-        determine_coordinates(dataset, rate_dataset)
-        dataset[dataset_type] = rate_dataset.rate_coefficient
+        rate_coefficients[dataset_type] = rate_dataset.rate_coefficient
+    
+    dataset = xr.merge([v.rename(k) for k, v in rate_coefficients.items()], join='inner')
+    dataset["electron_density"] = dataset["dim_electron_density"] * reference_electron_density
+    dataset["electron_temp"] = dataset["dim_electron_temp"] * reference_electron_temp
 
     dataset = align_rates_on_charge_states(dataset)
+
+    dataset = dataset.assign_attrs(
+        atomic_number=config_for_species["atomic_number"],
+        species_name=species_name,
+        git_hash=get_git_revision_short_hash(),
+        radas_version=radas_version,
+        created=datetime.date.today().strftime("%Y-%b-%d"),
+    )
+
+    dataset = write_global_attributes(dataset, config["globals"])
 
     return dataset
 
@@ -69,26 +77,6 @@ def write_global_attributes(dataset: xr.Dataset, globals: dict) -> xr.Dataset:
     return dataset
 
 
-def determine_coordinates(dataset: xr.Dataset, rate_dataset: xr.Dataset):
-
-    for key in [
-        "electron_density",
-        "electron_temp",
-        "reference_electron_density",
-        "reference_electron_temp",
-    ]:
-        if key not in dataset:
-            dataset[key] = rate_dataset[key]
-
-    for key in ["electron_density", "electron_temp"]:
-        np.testing.assert_allclose(
-            dimensionless_magnitude(
-                (dataset[key] - rate_dataset[key]) / dataset[f"reference_{key}"]
-            ),
-            0.0,
-        )
-
-
 def build_adf11_rate_dataset(
     data_file_dir, species_name, dataset_type, dataset_config
 ):
@@ -107,36 +95,23 @@ def build_adf11_rate_dataset(
     )
     electron_temp = Quantity(10 ** data["DTEVD"][: data["ITMAXD"]], ureg.eV)
 
-    # Use logarithmic quantities to define the coordinates, so that we can interpolate over logarithmic quantities.
-    ds["electron_density"] = xr.DataArray(
-        electron_density, coords=dict(dim_electron_density=electron_density.magnitude)
-    )
-    ds["electron_temp"] = xr.DataArray(
-        electron_temp, coords=dict(dim_electron_temp=electron_temp.magnitude)
-    )
-
-    ds["reference_electron_density"] = Quantity(1.0, ureg.m**-3)
-    ds["reference_electron_temp"] = Quantity(1.0, ureg.eV)
-
-    ds["number_of_charge_states"] = data["IZMAX"]
-    charge_state = np.arange(data["IZMAX"])
-    ds["charge_state"] = xr.DataArray(
-        charge_state, coords=dict(dim_charge_state=charge_state)
-    )
-
     coefficient = data["DRCOFD"][: data["IZMAX"], : data["ITMAXD"], : data["IDMAXD"]]
     if dataset_config["code"] <= 9:
         coefficient = 10**coefficient
 
     input_units = dataset_config["stored_units"]
-    output_units = dataset_config["desired_units"]
-    ds["rate_coefficient"] = convert_units(
-        xr.DataArray(
-            coefficient,
-            dims=("dim_charge_state", "dim_electron_temp", "dim_electron_density"),
-        ).pint.quantify(input_units),
-        output_units,
-    )
+
+    dim_electron_density = dimensionless_magnitude(electron_density / reference_electron_density)
+    dim_electron_temp = dimensionless_magnitude(electron_temp / reference_electron_temp)
+    dim_charge_state = np.arange(data["IZMAX"])
+
+    rate_coefficient = xr.DataArray(coefficient, coords=dict(
+        dim_charge_state = dim_charge_state,
+        dim_electron_temp = dim_electron_temp,
+        dim_electron_density = dim_electron_density,
+    )).pint.quantify(input_units)
+
+    ds["rate_coefficient"] = convert_units(rate_coefficient, dataset_config["desired_units"])
 
     return ds
 
