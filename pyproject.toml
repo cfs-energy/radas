@@ -5,7 +5,7 @@ name = "radas"
 # used a date-based format (e.g., 2025.6.2), package managers will treat
 # Semantic Versioning (i.e. 1.0.0) as an "older" release. The epoch ensures that
 # the new versioning takes precedence over all legacy YYYY.MM.version releases.
-version = "1!1.0.0"
+version = "1!1.0.1"
 description = "Plasma radiated power calculated using OpenADAS"
 authors = ["Commonwealth Fusion Systems"]
 readme = "README.md"
