@@ -67,10 +67,10 @@ jobs:
       - name: Install Poetry
         run: pipx install "poetry>=2,<3"
 
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: '3.12'
           cache: 'poetry'
 
       - name: Install dependencies
