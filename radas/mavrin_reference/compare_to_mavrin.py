@@ -50,18 +50,21 @@ def compare_radas_to_mavrin_per_species(output_dir: Path, species: str, max_deca
     for i in range(ds.sizes["dim_ne_tau"]):
         ne_tau = ds.ne_tau.isel(dim_ne_tau=i).item()
 
-        Lz_radas.isel(dim_ne_tau=i).plot(ax=axs[0][0], label=f"{ne_tau:~P}", color=f"C{i}")
+        Lz_radas.isel(dim_ne_tau=i).plot(ax=axs[0][0], color=f"C{i}")
         if Lz_mavrin is not None:
-            Lz_mavrin.isel(dim_ne_tau=i).plot(ax=axs[0][1], color=f"C{i}")
+            Lz_mavrin.isel(dim_ne_tau=i).plot(ax=axs[0][1], color=f"C{i}", label=f"{ne_tau:~.1P}")
+        else:
+            axs[0][1].plot([], [], color=f"C{i}", label=f"{ne_tau:~.1P}")
 
         mean_charge_radas.isel(dim_ne_tau=i).plot(ax=axs[1][0], color=f"C{i}")
         if mean_charge_mavrin is not None:
             mean_charge_mavrin.isel(dim_ne_tau=i).plot(ax=axs[1][1], color=f"C{i}")
     
-    ds["coronal_Lz"].pint.to(ureg.W * ureg.m**3).plot(ax=axs[0][0], label="coronal", color="k")
-    ds["coronal_mean_charge_state"].pint.to(ureg.dimensionless).plot(ax=axs[1][0], label="coronal", color="k")
+    ds["coronal_Lz"].pint.to(ureg.W * ureg.m**3).plot(ax=axs[0][0], color="k")
+    axs[0][1].plot([], [], color="k", label="coronal")
+    ds["coronal_mean_charge_state"].pint.to(ureg.dimensionless).plot(ax=axs[1][0], color="k")
 
-    axs[0][0].legend()
+    axs[0][1].legend()
     
     Lz_radas_mag = magnitude_in_units(Lz_radas, ureg.W * ureg.m**3)
     Lz_coronal_mag = magnitude_in_units(ds["coronal_Lz"], ureg.W * ureg.m**3)
@@ -94,4 +97,4 @@ def compare_radas_to_mavrin_per_species(output_dir: Path, species: str, max_deca
     if show:
         plt.show()
     
-    plt.savefig(output_dir / f"{species}.png")
+    plt.savefig(output_dir / f"{species}.png", dpi=300)
