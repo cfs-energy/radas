@@ -7,38 +7,69 @@ from importlib.metadata import version, PackageNotFoundError
 import datetime
 import xarray as xr
 import numpy as np
+from .interpolate_rates import interpolate_array
 
 reference_electron_density = Quantity(1.0, ureg.m**-3)
 reference_electron_temp = Quantity(1.0, ureg.eV)
 
 def read_rate_coeff(data_file_dir, species_name, config):
     """Builds a rate_dataset combining all of the raw data available for a given species."""
-    config_for_species = config["species"][species_name]
 
     try:
         radas_version=version("radas")
     except PackageNotFoundError:
         radas_version="UNDEFINED"
     
-    rate_coefficients = dict()
+    rate_coefficients = build_sorted_dictionary_of_rate_coefficients(config, species_name, data_file_dir)
+    rate_coefficients = interpolate_rates_onto_matching_grids(config, rate_coefficients)
+    
+    try:
+        dataset = xr.merge([v.rename(k) for k, v in rate_coefficients.items()], join="exact")
+    except xr.AlignmentError as e:
+        raise xr.AlignmentError(f"Alignment failed for {species_name} with join='exact'. Error was {e}")
 
-    for dataset_type, file_to_download in config_for_species["data_files"].items():
+    if dataset.sizes["dim_electron_density"] <= 2 or dataset.sizes["dim_electron_temp"] <= 2:
+        raise xr.AlignmentError(f"Alignment resulted in dataset sizes {dataset.sizes} for {species_name}.")
+
+    dataset["electron_density"] = dataset["dim_electron_density"] * reference_electron_density
+    dataset["electron_temp"] = dataset["dim_electron_temp"] * reference_electron_temp
+
+    dataset = align_rates_on_charge_states(dataset)
+
+    dataset = dataset.assign_attrs(
+        atomic_number=config["species"][species_name]["atomic_number"],
+        species_name=species_name,
+        git_hash=get_git_revision_short_hash(),
+        radas_version=radas_version,
+        created=datetime.date.today().strftime("%Y-%b-%d"),
+    )
+
+    dataset = write_global_attributes(dataset, config["globals"])
+
+    return dataset
+
+def build_sorted_dictionary_of_rate_coefficients(config, species_name, data_file_dir):
+    """Parses configuration data to build a collection of rate coefficients sorted by year (most-recent first)."""
+    rate_coefficients = dict()
+    years = dict()
+
+    for dataset_type, file_to_read in config["species"][species_name]["data_files"].items():
         reader_key, dataset_config = determine_reader_class_and_config(
             config["data_file_config"], dataset_type
         )
 
-        if isinstance(file_to_download, int):
-            year = file_to_download
-        elif isinstance(file_to_download, list) and len(file_to_download) == 2:
-            year = file_to_download[1]
+        if isinstance(file_to_read, int):
+            years[dataset_type] = file_to_read
+        elif isinstance(file_to_read, list) and len(file_to_read) == 2:
+            years[dataset_type] = file_to_read[1]
         else:
-            raise NotImplementedError(f"Could not process entry: {file_to_download} for {species_name} {dataset_type}")
+            raise NotImplementedError(f"Could not process entry: {file_to_read} for {species_name} {dataset_type}")
 
         if reader_key == "adf11":
             rate_dataset = build_adf11_rate_dataset(
                 data_file_dir,
                 species_name,
-                year,
+                years[dataset_type],
                 dataset_type,
                 dataset_config,
             )
@@ -50,32 +81,35 @@ def read_rate_coeff(data_file_dir, species_name, config):
 
         rate_coefficients[dataset_type] = rate_dataset.rate_coefficient
     
-    join_method = config_for_species.get("join_method", "exact")
-    try:
-        dataset = xr.merge([v.rename(k) for k, v in rate_coefficients.items()],
-                        join=join_method)
-    except xr.AlignmentError as e:
-        raise xr.AlignmentError(f"Alignment failed for {species_name} with join={join_method}. Error was {e}")
+    # Sort the datasets so that the most recent data comes first
+    sorted_by_year = dict(sorted(years.items(), key=lambda item: item[1], reverse=True))
 
-    if dataset.sizes["dim_electron_density"] <= 2 or dataset.sizes["dim_electron_temp"] <= 2:
-        raise xr.AlignmentError(f"Alignment resulted in zero-length axes for {species_name} with join={join_method}. Resulting dataset sizes {dataset.sizes}")
+    return {k: rate_coefficients[k] for k in sorted_by_year.keys()}
 
-    dataset["electron_density"] = dataset["dim_electron_density"] * reference_electron_density
-    dataset["electron_temp"] = dataset["dim_electron_temp"] * reference_electron_temp
+def interpolate_rates_onto_matching_grids(config, rate_coefficients):
 
-    dataset = align_rates_on_charge_states(dataset)
+    # Since the rate coefficients are sorted by year, taking the first value
+    # gives the most recent data.
+    most_recent_rate_coeff = list(rate_coefficients.values())[0]
 
-    dataset = dataset.assign_attrs(
-        atomic_number=config_for_species["atomic_number"],
-        species_name=species_name,
-        git_hash=get_git_revision_short_hash(),
-        radas_version=radas_version,
-        created=datetime.date.today().strftime("%Y-%b-%d"),
+    new_electron_density = np.logspace(
+        np.log10(most_recent_rate_coeff["dim_electron_density"].min().item()),
+        np.log10(most_recent_rate_coeff["dim_electron_density"].max().item()),
+        num = config["globals"]["electron_density_resolution"]
     )
 
-    dataset = write_global_attributes(dataset, config["globals"])
+    new_electron_temp = np.logspace(
+        np.log10(most_recent_rate_coeff["dim_electron_temp"].min().item()),
+        np.log10(most_recent_rate_coeff["dim_electron_temp"].max().item()),
+        num = config["globals"]["electron_temp_resolution"]
+    )
 
-    return dataset
+    interpolated_rate_coefficients = dict()
+
+    for key, value in rate_coefficients.items():
+        interpolated_rate_coefficients[key] = value.groupby("dim_charge_state").map(interpolate_array, args=(new_electron_density, new_electron_temp))
+    
+    return interpolated_rate_coefficients
 
 
 def write_global_attributes(dataset: xr.Dataset, globals: dict) -> xr.Dataset:
