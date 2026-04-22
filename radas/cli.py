@@ -144,11 +144,15 @@ def run_radas(
                         species_name: datasets[species_name] for species_name in species
                     }
 
+                # Sort by atomic number, to process heavier elements first since they take longer
+                # N.b. there will be a race condition, so it might not appear these start first
+                sorted_datasets = dict(sorted(datasets.items(), key=lambda item: item[1].atomic_number, reverse=True))
+                
                 pool.map(
                     partial(
                         run_radas_computation, output_dir=output_dir, verbose=verbose
                     ),
-                    [(ds) for ds in datasets.values()],
+                    [(ds) for ds in sorted_datasets.values()],
                 )
         else:
             for ds in datasets.values():
