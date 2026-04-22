@@ -15,7 +15,6 @@ from .radiated_power import calculate_Lz
 from .time_evolution import calculate_time_evolution
 from .unit_handling import convert_units, ureg
 from .mavrin_reference import compare_radas_to_mavrin
-from .interpolate_rates import interpolate_dataset
 
 
 @click.command()
@@ -137,19 +136,6 @@ def run_radas(
                     data_file_dir, species_name, configuration
                 )
         
-        if ("electron_density_resolution" in configuration["globals"]) or ("electron_temp_resolution") in configuration["globals"]:
-            if verbose:
-                print("Interpolating rate coefficients")
-            
-            new_datasets = dict()
-            for species_name, dataset in datasets.items():
-                electron_density_resolution = configuration["globals"].get("electron_density_resolution", dataset.sizes["dim_electron_density"])
-                electron_temp_resolution = configuration["globals"].get("electron_temp_resolution", dataset.sizes["dim_electron_temp"])
-                new_datasets[species_name] = interpolate_dataset(dataset,
-                                                                 electron_density_resolution = electron_density_resolution,
-                                                                 electron_temp_resolution = electron_temp_resolution)
-            datasets = new_datasets
-
         output_dir.mkdir(exist_ok=True, parents=True)
         if not debug:
             with mp.Pool() as pool:
