@@ -4,6 +4,7 @@ import multiprocessing as mp
 from pathlib import Path
 from functools import partial
 from typing import Optional
+import contextlib
 
 from .shared import open_yaml_file, default_config_file
 from .adas_interface.download_adas_datasets import download_species_data
@@ -69,14 +70,21 @@ def run_radas_cli(
         verbose=verbose,
         debug=debug,
     )
-    try:
-        from ipdb import launch_ipdb_on_exception
+    
+    # nullcontext does nothing.
+    debug_context = contextlib.nullcontext()
 
-        with launch_ipdb_on_exception():
-            run_radas(**kwargs)
-    except ModuleNotFoundError:
+    if debug:
+        try:
+            # If --debug and ipdb is installed, switch
+            # to use the launch_ipdb_on_exception context
+            from ipdb import launch_ipdb_on_exception
+            debug_context = launch_ipdb_on_exception()
+        except ModuleNotFoundError:
+            pass
+
+    with debug_context:
         run_radas(**kwargs)
-
 
 def run_radas(
     directory: Path,
