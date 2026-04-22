@@ -50,8 +50,16 @@ def read_rate_coeff(data_file_dir, species_name, config):
 
         rate_coefficients[dataset_type] = rate_dataset.rate_coefficient
     
-    dataset = xr.merge([v.rename(k) for k, v in rate_coefficients.items()],
-                       join=config_for_species.get("join_method", "exact"))
+    join_method = config_for_species.get("join_method", "exact")
+    try:
+        dataset = xr.merge([v.rename(k) for k, v in rate_coefficients.items()],
+                        join=join_method)
+    except xr.AlignmentError as e:
+        raise xr.AlignmentError(f"Alignment failed for {species_name} with join={join_method}. Error was {e}")
+
+    if dataset.sizes["dim_electron_density"] <= 2 or dataset.sizes["dim_electron_temp"] <= 2:
+        raise xr.AlignmentError(f"Alignment resulted in zero-length axes for {species_name} with join={join_method}. Resulting dataset sizes {dataset.sizes}")
+
     dataset["electron_density"] = dataset["dim_electron_density"] * reference_electron_density
     dataset["electron_temp"] = dataset["dim_electron_temp"] * reference_electron_temp
 
@@ -87,11 +95,11 @@ def write_global_attributes(dataset: xr.Dataset, globals: dict) -> xr.Dataset:
 
 
 def build_adf11_rate_dataset(
-    data_file_dir, species_name, dataset_type, dataset_config
+    data_file_dir, species_name, year, dataset_type, dataset_config
 ):
     from .adas_interface.read_adf11_file import read_adf11_file
 
-    data = read_adf11_file(data_file_dir, species_name, dataset_type)
+    data = read_adf11_file(data_file_dir, species_name, year, dataset_type)
 
     ds = xr.Dataset()
 
