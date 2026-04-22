@@ -56,11 +56,12 @@ jobs:
           radas_config -o ./new_config.yaml
           radas -s hydrogen -c ./new_config.yaml
 
-      - name: Test all species
+      - name: Test radas command
         if: (startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch') && matrix.python-version == '3.12'
         env:
           MPLBACKEND: Agg
         run: |
+          poetry install --without dev
           poetry run radas
 
   # --- JOB 2: BUILD RELEASE ARTIFACTS ---
