@@ -32,7 +32,7 @@ def download_species_data(
         year_key = f"{year}"[-2:]
         dataset_prefix = dataset_config["prefix"].lower()
 
-        output_filename = data_file_dir / f"{species_name}_{dataset_type}.dat"
+        output_filename = data_file_dir / f"{species_name}_{dataset_type}_{year_key}.dat"
         query_path = f"{url_base}/download/{reader_class}/{dataset_prefix}{year_key}/{dataset_prefix}{year_key}_{species_key}.dat"
 
         if not output_filename.exists():

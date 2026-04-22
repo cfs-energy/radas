@@ -14,15 +14,15 @@ def load_library(library_name: str, filepath: Path):
 
 
 def read_adf11_file(
-    data_file_dir, species_name, dataset_type
+    data_file_dir, species_name, year, dataset_type
 ) -> dict:
     """Open and read an ADF11 OpenADAS file.
     
     Uses the format specification from https://www.adas.ac.uk/man/appxa-11.pdf
     """
 
-
-    filename = data_file_dir / f"{species_name}_{dataset_type}.dat"
+    year_key = f"{year}"[-2:]
+    filename = data_file_dir / f"{species_name}_{dataset_type}_{year_key}.dat"
     if not filename.exists():
         raise FileNotFoundError(f"{filename} does not exist.")
 

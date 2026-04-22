@@ -22,15 +22,23 @@ def read_rate_coeff(data_file_dir, species_name, config):
     
     rate_coefficients = dict()
 
-    for dataset_type in config_for_species["data_files"].keys():
+    for dataset_type, file_to_download in config_for_species["data_files"].items():
         reader_key, dataset_config = determine_reader_class_and_config(
             config["data_file_config"], dataset_type
         )
+
+        if isinstance(file_to_download, int):
+            year = file_to_download
+        elif isinstance(file_to_download, list) and len(file_to_download) == 2:
+            year = file_to_download[1]
+        else:
+            raise NotImplementedError(f"Could not process entry: {file_to_download} for {species_name} {dataset_type}")
 
         if reader_key == "adf11":
             rate_dataset = build_adf11_rate_dataset(
                 data_file_dir,
                 species_name,
+                year,
                 dataset_type,
                 dataset_config,
             )
