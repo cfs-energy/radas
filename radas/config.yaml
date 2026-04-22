@@ -137,24 +137,24 @@ species:
     atomic_symbol: "Li"
     atomic_number:  3
     data_files:
-      effective_recombination: 1996
-      effective_ionisation: 1996
-      line_emission_from_excitation: 1996
-      recombination_and_bremsstrahlung: 1996
+      effective_recombination: 1989
+      effective_ionisation: 1989
+      line_emission_from_excitation: 1989
+      recombination_and_bremsstrahlung: 1989
       charge_exchange_cross_coupling: 1989
       charge_exchange_emission: 1989
-      mean_ionisation_potential: 1996
+      mean_ionisation_potential: 1989
   beryllium:
     atomic_symbol: "Be"
     atomic_number:  4
     data_files:
-      effective_recombination: 1996
-      effective_ionisation: 1996
-      line_emission_from_excitation: 1996
-      recombination_and_bremsstrahlung: 1996
+      effective_recombination: 1989
+      effective_ionisation: 1989
+      line_emission_from_excitation: 1989
+      recombination_and_bremsstrahlung: 1989
       charge_exchange_cross_coupling: 1989
       charge_exchange_emission: 1989
-      mean_ionisation_potential: 1996
+      mean_ionisation_potential: 1989
   boron:
     atomic_symbol: "B"
     atomic_number:  5
@@ -192,13 +192,13 @@ species:
     atomic_symbol: "O"
     atomic_number:  8
     data_files:
-      effective_recombination: 1996
-      effective_ionisation: 1996
-      line_emission_from_excitation: 1996
-      recombination_and_bremsstrahlung: 1996
+      effective_recombination: 1989
+      effective_ionisation: 1989
+      line_emission_from_excitation: 1989
+      recombination_and_bremsstrahlung: 1989
       charge_exchange_cross_coupling: 1989
       charge_exchange_emission: 1989
-      mean_ionisation_potential: 1996
+      mean_ionisation_potential: 1989
   fluorine:
     atomic_symbol: "F"
     atomic_number:  9
@@ -206,13 +206,13 @@ species:
     atomic_symbol: "Ne"
     atomic_number: 10
     data_files:
-      effective_recombination: 1996
-      effective_ionisation: 1996
-      line_emission_from_excitation: 1996
-      recombination_and_bremsstrahlung: 1996
+      effective_recombination: 1989
+      effective_ionisation: 1989
+      line_emission_from_excitation: 1989
+      recombination_and_bremsstrahlung: 1989
       charge_exchange_cross_coupling: 1989
       charge_exchange_emission: 1989
-      mean_ionisation_potential: 1996
+      mean_ionisation_potential: 1989
   sodium:
     atomic_symbol: "Na"
     atomic_number: 11
