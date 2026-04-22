@@ -197,6 +197,9 @@ def run_radas_computation(dataset: xr.Dataset, output_dir: Path, verbose: int):
     output_dir.mkdir(exist_ok=True)
     dataset.pint.dequantify().to_netcdf(output_dir / f"{dataset.species_name}.nc")
 
+    if verbose:
+        print(f"Finished computation for {dataset.species_name}")
+
 
 @click.command()
 @click.option(
