@@ -43,6 +43,8 @@ def read_rate_coeff(data_file_dir, species_name, config):
     # Convert dimensionless coordinates back to physical quantities
     dataset["electron_density"] = dataset["dim_electron_density"] * reference_electron_density
     dataset["electron_temp"] = dataset["dim_electron_temp"] * reference_electron_temp
+    dataset["reference_electron_density"] = reference_electron_density
+    dataset["reference_electron_temp"] = reference_electron_temp
 
     # 4. Standardize charge state indexing and attach global attributes
     dataset = align_rates_on_charge_states(dataset)
