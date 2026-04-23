@@ -2,7 +2,6 @@ from .unit_handling import Quantity, ureg, convert_units, dimensionless_magnitud
 from .adas_interface.determine_adas_dataset_type import (
     determine_reader_class_and_config,
 )
-from .shared import get_git_revision_short_hash
 from importlib.metadata import version, PackageNotFoundError
 import datetime
 import xarray as xr
@@ -51,7 +50,6 @@ def read_rate_coeff(data_file_dir, species_name, config):
     dataset = dataset.assign_attrs(
         atomic_number=config["species"][species_name]["atomic_number"],
         species_name=species_name,
-        git_hash=get_git_revision_short_hash(),
         radas_version=radas_version,
         created=datetime.date.today().strftime("%Y-%b-%d"),
     )
