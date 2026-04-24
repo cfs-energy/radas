@@ -70,20 +70,21 @@ def run_radas_cli(
         debug=debug,
     )
     
-    # nullcontext does nothing.
-    debug_context = contextlib.nullcontext()
-
     if debug:
-        try:
-            # If --debug and ipdb is installed, switch
-            # to use the launch_ipdb_on_exception context
-            from ipdb import launch_ipdb_on_exception
-            debug_context = launch_ipdb_on_exception()
-        except ModuleNotFoundError:
-            pass
-
-    with debug_context:
+        with _post_mortem_debugger():
+            run_radas(**kwargs)
+    else:
         run_radas(**kwargs)
+
+def _post_mortem_debugger():
+    """Context manager that drops into ipdb on unhandled exceptions, or a no-op if ipdb is not installed."""
+    try:
+        from ipdb import launch_ipdb_on_exception
+    except ModuleNotFoundError:
+        print("Warning: --debug set but ipdb is not installed; "
+                "install with `pip install ipdb` for post-mortem debugging.")
+        return contextlib.nullcontext()
+    return launch_ipdb_on_exception()
 
 def run_radas(
     directory: Path,
@@ -133,7 +134,7 @@ def run_radas(
                 (species_name in species) or (species == ("all",))
             ):
                 datasets[species_name] = read_rate_coeff(
-                    data_file_dir, species_name, configuration
+                    data_file_dir, species_name, configuration, debug=debug
                 )
         
         output_dir.mkdir(exist_ok=True, parents=True)
