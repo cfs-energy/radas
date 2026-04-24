@@ -6,13 +6,14 @@ from importlib.metadata import version, PackageNotFoundError
 import datetime
 import xarray as xr
 import numpy as np
+import warnings
 from .interpolate_rates import interpolate_array
 
 # Reference units for non-dimensionalizing coordinates
 reference_electron_density = Quantity(1.0, ureg.m**-3)
 reference_electron_temp = Quantity(1.0, ureg.eV)
 
-def read_rate_coeff(data_file_dir, species_name, config):
+def read_rate_coeff(data_file_dir, species_name, config, debug=False):
     """
     Main pipeline to assemble an atomic rate dataset for a specific species.
     
@@ -28,7 +29,7 @@ def read_rate_coeff(data_file_dir, species_name, config):
     rate_coefficients = build_sorted_dictionary_of_rate_coefficients(config, species_name, data_file_dir)
     
     # 2. Resample all datasets to a common resolution
-    rate_coefficients = interpolate_rates_onto_matching_grids(config, rate_coefficients)
+    rate_coefficients = interpolate_rates_onto_matching_grids(config, species_name, rate_coefficients, debug)
     
     # 3. Merge individual datasets (e.g., recombination, ionization) into one
     try:
@@ -87,7 +88,7 @@ def build_sorted_dictionary_of_rate_coefficients(config, species_name, data_file
     sorted_keys = sorted(years, key=years.get, reverse=True)
     return {k: rate_coefficients[k] for k in sorted_keys}
 
-def interpolate_rates_onto_matching_grids(config, rate_coefficients):
+def interpolate_rates_onto_matching_grids(config, species_name, rate_coefficients, debug):
     """Resample all rate coefficients to a uniform log-grid defined by the newest dataset."""
     
     # Use the range of the most recent dataset to define the master grid
@@ -107,10 +108,22 @@ def interpolate_rates_onto_matching_grids(config, rate_coefficients):
 
     interpolated_rate_coefficients = dict()
     for key, value in rate_coefficients.items():
-        # Map interpolation across charge states
-        interpolated_rate_coefficients[key] = value.groupby("dim_charge_state").map(
-            interpolate_array, args=(new_electron_density, new_electron_temp)
-        )
+        with warnings.catch_warnings(record=True) as captured_warnings:
+            warnings.simplefilter("always")
+
+            # Map interpolation across charge states
+            interpolated_rate_coefficients[key] = value.groupby("dim_charge_state").map(
+                interpolate_array, args=(new_electron_density, new_electron_temp)
+            )
+        
+        if debug:
+            for w in captured_warnings:
+                warnings.warn_explicit(
+                    message=f"when interpolating {key} for {species_name}. {w.message}",
+                    category=w.category,
+                    filename=w.filename,
+                    lineno=w.lineno,
+                )
     
     return interpolated_rate_coefficients
 
