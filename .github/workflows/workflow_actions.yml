@@ -10,8 +10,8 @@ on:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  # Use non-interactive matplotlib backend, to prevent the workflow from making
-  # interactive windows.
+  # Use non-interactive matplotlib backend, to prevent the workflow from
+  # trying to make interactive windows.
   MPLBACKEND: Agg
 
 concurrency:
@@ -55,7 +55,7 @@ jobs:
           radas_config -o ./new_config.yaml
           radas -s hydrogen -c ./new_config.yaml
   
-  # --- JOB 2: RUN RADAS COMMAND ---
+  # --- JOB 2: RUN RADAS COMMAND, CHECK IT WORKS WITH DEFAULT CONFIG ---
   test_radas:
     name: Test radas command
     runs-on: ubuntu-latest
@@ -81,26 +81,11 @@ jobs:
       - name: Run radas command
         run: poetry run radas -vvv
       
-      - name: Create and Upload Release Asset
-        # Only upload if this is a tag (skip for manual workflow_dispatch runs)
-        if: github.event_name == 'release'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          if [ -d "./radas_dir" ]; then
-            zip -r radas_dir.zip ./radas_dir
-            gh release create ${{ github.ref_name }} --generate-notes || true
-            gh release upload ${{ github.ref_name }} radas_dir.zip --clobber
-          else
-            echo "::error::radas_dir not found! Skipping upload."
-            exit 1
-          fi
-
   # --- JOB 3: BUILD RELEASE ARTIFACTS ---
   build_release:
     name: Build Release
     needs: [pytest, test_radas]
-    if: startsWith(github.ref, 'refs/tags')
+    if: github.event_name == 'release'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -122,7 +107,7 @@ jobs:
   publish:
     name: Publish to PyPI
     needs: build_release
-    if: startsWith(github.ref, 'refs/tags')
+    if: github.event_name == 'release'
     runs-on: ubuntu-latest
     environment:
       name: pypi-publish

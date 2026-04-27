@@ -134,7 +134,7 @@ def run_radas(
                 (species_name in species) or (species == ("all",))
             ):
                 datasets[species_name] = read_rate_coeff(
-                    data_file_dir, species_name, configuration, debug=debug
+                    data_file_dir, species_name, configuration, verbose=verbose,
                 )
         
         output_dir.mkdir(exist_ok=True, parents=True)
