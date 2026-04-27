@@ -1,12 +1,11 @@
 import xarray as xr
-import numpy as np
 from pathlib import Path
 import matplotlib.pyplot as plt
 from .read_mavrin_data import (
     read_mavrin_data,
     compute_Mavrin_polynomial_fit,
 )
-from ..unit_handling import ureg, magnitude
+from ..unit_handling import ureg, magnitude_in_units
 
 
 def compare_radas_to_mavrin(output_dir: Path):
@@ -17,7 +16,7 @@ def compare_radas_to_mavrin(output_dir: Path):
             compare_radas_to_mavrin_per_species(output_dir, species)
 
 
-def compare_radas_to_mavrin_per_species(output_dir: Path, species: str, max_decades: int = 6):
+def compare_radas_to_mavrin_per_species(output_dir: Path, species: str, max_decades: int = 4, show: bool=False):
     mavrin_data = read_mavrin_data()
 
     ds = xr.open_dataset(output_dir / f"{species}.nc").pint.quantify()
@@ -46,41 +45,56 @@ def compare_radas_to_mavrin_per_species(output_dir: Path, species: str, max_deca
     Lz_radas = ds["equilibrium_Lz"].pint.to(ureg.W * ureg.m**3)
     mean_charge_radas = ds["equilibrium_mean_charge_state"].pint.to(ureg.dimensionless)
 
-    fig, axs = plt.subplots(ncols=2)
+    fig, axs = plt.subplots(ncols=2, nrows=2, sharex="all", sharey="row")
 
     for i in range(ds.sizes["dim_ne_tau"]):
         ne_tau = ds.ne_tau.isel(dim_ne_tau=i).item()
 
-        Lz_radas.isel(dim_ne_tau=i).plot(ax=axs[0], label=f"{ne_tau:~P}", color=f"C{i}")
+        Lz_radas.isel(dim_ne_tau=i).plot(ax=axs[0][0], color=f"C{i}")
         if Lz_mavrin is not None:
-            Lz_mavrin.isel(dim_ne_tau=i).plot(ax=axs[0], color=f"C{i}", linestyle="--")
+            Lz_mavrin.isel(dim_ne_tau=i).plot(ax=axs[0][1], color=f"C{i}", label=f"{ne_tau:~.1P}")
+        else:
+            axs[0][1].plot([], [], color=f"C{i}", label=f"{ne_tau:~.1P}")
 
-        mean_charge_radas.isel(dim_ne_tau=i).plot(ax=axs[1], color=f"C{i}")
+        mean_charge_radas.isel(dim_ne_tau=i).plot(ax=axs[1][0], color=f"C{i}")
         if mean_charge_mavrin is not None:
-            mean_charge_mavrin.isel(dim_ne_tau=i).plot(
-                ax=axs[1], color=f"C{i}", linestyle="--"
-            )
+            mean_charge_mavrin.isel(dim_ne_tau=i).plot(ax=axs[1][1], color=f"C{i}")
     
-    ds["coronal_Lz"].pint.to(ureg.W * ureg.m**3).plot(ax=axs[0], label="coronal", color="k", linestyle="--")
-    ds["coronal_mean_charge_state"].pint.to(ureg.dimensionless).plot(ax=axs[1], label="coronal", color="k", linestyle="--")
+    ds["coronal_Lz"].pint.to(ureg.W * ureg.m**3).plot(ax=axs[0][0], color="k")
+    axs[0][1].plot([], [], color="k", label="coronal")
+    ds["coronal_mean_charge_state"].pint.to(ureg.dimensionless).plot(ax=axs[1][0], color="k")
 
-    axs[0].legend()
-    axs[0].set_yscale("log")
+    axs[0][1].legend()
     
-    Lz_radas_mag = magnitude(Lz_radas)
-    mean_charge_radas_mag = magnitude(mean_charge_radas)
+    Lz_radas_mag = magnitude_in_units(Lz_radas, ureg.W * ureg.m**3)
+    Lz_coronal_mag = magnitude_in_units(ds["coronal_Lz"], ureg.W * ureg.m**3)
+    Lz_min = min(Lz_radas_mag.min(), Lz_coronal_mag.min())
+    Lz_max = max(Lz_radas_mag.max(), Lz_coronal_mag.max())
 
-    axs[0].set_ylim(max(np.min(Lz_radas_mag), np.max(Lz_radas_mag) / 10**max_decades) / 2, np.max(Lz_radas_mag) * 2)
-    axs[1].set_ylim(0, np.max(mean_charge_radas_mag) * 1.2)
+    for ax in axs.flatten():
+        ax.set_title("")
+        ax.set_ylabel("")
 
-    axs[0].set_title("$L_z$ $[W m^3]$")
-    axs[1].set_title("$<Z>$")
+    axs[0][0].set_yscale("log")
+    axs[0][0].set_ylim(max(Lz_min, Lz_max / 10**max_decades) / 2, Lz_max * 2)
+    axs[1][0].set_ylim(0, ds.atomic_number * 1.2)
+
+    axs[0][0].set_ylabel("$L_z$ $[W m^3]$")
+    axs[1][0].set_ylabel("$<Z>$")
+
+    axs[0][0].set_title("radas")
+    axs[0][1].set_title("Mavrin")
 
     for ax in axs.flatten():
         ax.set_xscale("log")
+        ax.set_xlabel("")
+    
+    for ax in axs[-1][:].flatten():
         ax.set_xlabel("$T_e$ [$eV$]")
-        ax.set_ylabel("")
     
     plt.suptitle(species)
 
-    plt.savefig(output_dir / f"{species}.png")
+    if show:
+        plt.show()
+    
+    plt.savefig(output_dir / f"{species}.png", dpi=300)

@@ -4,6 +4,7 @@ import multiprocessing as mp
 from pathlib import Path
 from functools import partial
 from typing import Optional
+import contextlib
 
 from .shared import open_yaml_file, default_config_file
 from .adas_interface.download_adas_datasets import download_species_data
@@ -14,7 +15,6 @@ from .radiated_power import calculate_Lz
 from .time_evolution import calculate_time_evolution
 from .unit_handling import convert_units, ureg
 from .mavrin_reference import compare_radas_to_mavrin
-from .interpolate_rates import interpolate_dataset
 
 
 @click.command()
@@ -69,14 +69,22 @@ def run_radas_cli(
         verbose=verbose,
         debug=debug,
     )
-    try:
-        from ipdb import launch_ipdb_on_exception
-
-        with launch_ipdb_on_exception():
+    
+    if debug:
+        with _post_mortem_debugger():
             run_radas(**kwargs)
-    except ModuleNotFoundError:
+    else:
         run_radas(**kwargs)
 
+def _post_mortem_debugger():
+    """Context manager that drops into ipdb on unhandled exceptions, or a no-op if ipdb is not installed."""
+    try:
+        from ipdb import launch_ipdb_on_exception
+    except ModuleNotFoundError:
+        print("Warning: --debug set but ipdb is not installed; "
+                "install with `pip install ipdb` for post-mortem debugging.")
+        return contextlib.nullcontext()
+    return launch_ipdb_on_exception()
 
 def run_radas(
     directory: Path,
@@ -126,22 +134,9 @@ def run_radas(
                 (species_name in species) or (species == ("all",))
             ):
                 datasets[species_name] = read_rate_coeff(
-                    data_file_dir, species_name, configuration
+                    data_file_dir, species_name, configuration, verbose=verbose,
                 )
         
-        if ("electron_density_resolution" in configuration["globals"]) or ("electron_temp_resolution") in configuration["globals"]:
-            if verbose:
-                print("Interpolating rate coefficients")
-            
-            new_datasets = dict()
-            for species_name, dataset in datasets.items():
-                electron_density_resolution = configuration["globals"].get("electron_density_resolution", dataset.sizes["dim_electron_density"])
-                electron_temp_resolution = configuration["globals"].get("electron_temp_resolution", dataset.sizes["dim_electron_temp"])
-                new_datasets[species_name] = interpolate_dataset(dataset,
-                                                                 electron_density_resolution = electron_density_resolution,
-                                                                 electron_temp_resolution = electron_temp_resolution)
-            datasets = new_datasets
-
         output_dir.mkdir(exist_ok=True, parents=True)
         if not debug:
             with mp.Pool() as pool:
@@ -150,11 +145,15 @@ def run_radas(
                         species_name: datasets[species_name] for species_name in species
                     }
 
+                # Sort by atomic number, to process heavier elements first since they take longer
+                # N.b. there will be a race condition, so it might not appear these start first
+                sorted_datasets = dict(sorted(datasets.items(), key=lambda item: item[1].atomic_number, reverse=True))
+                
                 pool.map(
                     partial(
                         run_radas_computation, output_dir=output_dir, verbose=verbose
                     ),
-                    [(ds) for ds in datasets.values()],
+                    [(ds) for ds in sorted_datasets.values()],
                 )
         else:
             for ds in datasets.values():
@@ -198,6 +197,9 @@ def run_radas_computation(dataset: xr.Dataset, output_dir: Path, verbose: int):
 
     output_dir.mkdir(exist_ok=True)
     dataset.pint.dequantify().to_netcdf(output_dir / f"{dataset.species_name}.nc")
+
+    if verbose:
+        print(f"Finished computation for {dataset.species_name}")
 
 
 @click.command()
