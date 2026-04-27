@@ -1,14 +1,13 @@
 name: CI/CD Pipeline
 
 on:
+  release:
+    types: [published]
   push:
     branches: [main]
-    tags: ['*']
   pull_request:
     branches: [main]
   workflow_dispatch:
-  release:
-    types: [published]
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
