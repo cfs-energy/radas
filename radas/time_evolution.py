@@ -1,5 +1,6 @@
 import numpy as np
 import xarray as xr
+from numba import njit
 from scipy.integrate import solve_ivp
 from .unit_handling import ureg, magnitude_in_units
 
@@ -59,6 +60,7 @@ def calculate_time_evolution(dataset: xr.Dataset) -> xr.Dataset:
     return charge_state_fraction
 
 
+@njit
 def shift(arr, num, fill_value=0.0):
     result = np.empty_like(arr)
     if num > 0:
@@ -72,6 +74,7 @@ def shift(arr, num, fill_value=0.0):
     return result
 
 
+@njit
 def calculate_derivative(
     _,
     charge_state_fraction: np.ndarray,
@@ -82,9 +85,7 @@ def calculate_derivative(
 ):
     """Calculate the the partial derivative of the impurity density w.r.t. time.
 
-    A compensated sum is used to reduce the risk of truncation. If you think this is affecting performance, you can replace
-    the last lines with
-    dydt = np.sum([-ionisation_to_above, ionisation_from_below, recombination_from_above, -recombination_to_below], axis=0)
+    A compensated sum is used to reduce the risk of truncation. The function is compiled with numba, so this is cheap.
 
     The default option is for a non-refuelled impurity. If you set a ne_tau, it is assumed that the ground state is
     constantly refuelled at a rate of 1 / ne_tau and that the excited states
@@ -115,6 +116,7 @@ def calculate_derivative(
     return change_in_charge_state_fraction * electron_density
 
 
+@njit
 def kahan_babushka_neumaier_sum(values_to_sum):
     """Improved Kahan compensated summation algorithm."""
     running_sum = 0.0
