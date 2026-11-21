@@ -8,8 +8,9 @@ from .unit_handling import ureg, magnitude_in_units
 def calculate_time_evolution(dataset: xr.Dataset) -> xr.Dataset:
     """Evolve the system over time, and record the impurity charge-state fractions as a function of time.
 
-    The equations are stiff, so we need to use "BDF", "Radau" or "LSODA" as the solver method. Radau was
-    found to give a good balance of accuracy and speed.
+    The equations are stiff, so we need to use "BDF", "Radau" or "LSODA" as the solver method. The rates are
+    constant in time, so the exact (tridiagonal) Jacobian is supplied; LSODA with this Jacobian is much faster
+    than Radau, at the same accuracy.
     """
     evaluation_times = np.logspace(
         np.log10(magnitude_in_units(dataset.evolution_start, ureg.s)).item(),
@@ -25,6 +26,10 @@ def calculate_time_evolution(dataset: xr.Dataset) -> xr.Dataset:
         charge_state_fraction = np.zeros_like(effective_ionisation)
         charge_state_fraction[0] = 1.0
 
+        jacobian = calculate_jacobian(
+            effective_ionisation, effective_recombination, electron_density, ne_tau
+        )
+
         result = solve_ivp(
             calculate_derivative,
             y0=charge_state_fraction,
@@ -36,7 +41,8 @@ def calculate_time_evolution(dataset: xr.Dataset) -> xr.Dataset:
                 electron_density,
                 ne_tau,
             ),
-            method="Radau",
+            method="LSODA",
+            jac=lambda *_: jacobian,
             rtol=1e-3,
             atol=1e-12,
         )
@@ -114,6 +120,22 @@ def calculate_derivative(
     change_in_charge_state_fraction[0] += 1.0 / ne_tau
 
     return change_in_charge_state_fraction * electron_density
+
+
+def calculate_jacobian(
+    effective_ionisation,
+    effective_recombination,
+    electron_density,
+    ne_tau=np.inf,
+):
+    """Jacobian of calculate_derivative. The system is linear, so this is constant in time and tridiagonal."""
+    diagonal = -effective_ionisation - shift(effective_recombination, +1) - 1.0 / ne_tau
+
+    return electron_density * (
+        np.diag(diagonal)
+        + np.diag(effective_ionisation[:-1], -1)
+        + np.diag(effective_recombination[:-1], +1)
+    )
 
 
 @njit
