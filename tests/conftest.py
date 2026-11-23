@@ -1,3 +1,4 @@
+# ruff: noqa: D103
 """Sets up some shared resources for testing.
 
 Since radas builds the fortran interface inside the library, we

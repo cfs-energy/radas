@@ -9,6 +9,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# Least privilege by default; jobs that need more (publish) declare their own permissions.
+permissions:
+  contents: read
+
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   # Use non-interactive matplotlib backend, to prevent the workflow from

@@ -1,3 +1,4 @@
+# ruff: noqa: D103
 """Simple tests to make sure that the unit handling is working as expected."""
 
 import pytest

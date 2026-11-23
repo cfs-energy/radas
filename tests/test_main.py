@@ -1,3 +1,4 @@
+# ruff: noqa: D103
 """Run the main integrated radas program."""
 
 import pytest
