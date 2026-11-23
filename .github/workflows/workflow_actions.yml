@@ -45,7 +45,12 @@ jobs:
         run: poetry install --with dev
 
       - name: Run Pytest
-        run: poetry run pytest
+        run: poetry run pytest  # numba JIT is off (tests/conftest.py) so coverage can measure the compiled functions
+
+      - name: Run numba-compiled tests
+        run: poetry run pytest --no-cov --ignore=tests/test_main.py  # test_main is the slow pipeline run; JIT on, so no coverage
+        env:
+          NUMBA_DISABLE_JIT: "0"
 
       - name: Smoke test package installation
         run: |
