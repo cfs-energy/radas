@@ -7,7 +7,8 @@ import xarray as xr
 from radas import Quantity, run_radas_computation
 from radas.cli import run_radas_cli
 from radas.read_rate_coeffs import write_global_attributes
-from radas.steady_state import steady_state
+from radas.steady_state import calculate_steady_state_fractional_abundances, steady_state
+from radas.time_evolution import calculate_derivative, calculate_time_evolution, shift
 
 
 def exact_steady_state(ionisation, recombination, ne_tau):
@@ -60,14 +61,21 @@ def test_infinite_ne_tau_is_detailed_balance():
     np.testing.assert_allclose(steady_state(ionisation, recombination, 1e40), fraction, rtol=1e-12)
 
 
-def synthetic_dataset(n=4):
-    """A small rate dataset with the variables run_radas_computation needs."""
+def synthetic_dataset(n=4, wide_rates=False, evolution_stop=1e2, ne_tau=(0.5e16, 0.5e17, 0.5e18)):
+    """A small rate dataset with the variables run_radas_computation needs.
+
+    wide_rates spans three decades of rate in each of ionisation and recombination, instead of one.
+    """
     rng = np.random.default_rng(3)
     dims = ("dim_charge_state", "dim_electron_temp", "dim_electron_density")
     shape = (n, 3, 2)
-    ionisation = rng.uniform(1e-15, 1e-14, shape)
+    if wide_rates:
+        ionisation = 10 ** rng.uniform(-16, -13, shape)
+        recombination = 10 ** rng.uniform(-17, -14, shape)
+    else:
+        ionisation = rng.uniform(1e-15, 1e-14, shape)
+        recombination = rng.uniform(1e-16, 1e-15, shape)
     ionisation[-1] = 0.0
-    recombination = rng.uniform(1e-16, 1e-15, shape)
 
     def rate(values, units):
         return xr.DataArray(Quantity(values, units), dims=dims)
@@ -87,8 +95,8 @@ def synthetic_dataset(n=4):
         dataset,
         dict(
             evolution_start=dict(value=1e-8, units="s"),
-            evolution_stop=dict(value=1e2, units="s"),
-            ne_tau=dict(value=[0.5e16, 0.5e17, 0.5e18], units="m^-3 s"),
+            evolution_stop=dict(value=evolution_stop, units="s"),
+            ne_tau=dict(value=list(ne_tau), units="m^-3 s"),
         ),
     )
 
@@ -100,6 +108,7 @@ def test_time_evolution_is_opt_in_and_converges_to_steady_state(tmp_path):
     evolved = xr.open_dataset(tmp_path / "evolved" / "synthetic.nc")
 
     assert "charge_state_evolution" not in default and "dim_time" not in default.dims
+    assert np.all(np.isfinite(default.equilibrium_charge_state_fraction))
     np.testing.assert_allclose(
         evolved.charge_state_evolution.isel(dim_time=-1),
         default.equilibrium_charge_state_fraction,
@@ -108,6 +117,43 @@ def test_time_evolution_is_opt_in_and_converges_to_steady_state(tmp_path):
     )
     np.testing.assert_allclose(default.equilibrium_charge_state_fraction.sum("dim_charge_state"), 1.0, rtol=1e-12)
     xr.testing.assert_identical(default.equilibrium_Lz, evolved.equilibrium_Lz)
+
+
+@pytest.mark.parametrize("ne_tau", [5e15, 5e17, 1e19, 1e21, np.inf])
+def test_steady_state_has_zero_time_evolution_derivative(ne_tau):
+    """The time-evolution right-hand side vanishes at the steady state, relative to the size of its terms."""
+    rng = np.random.default_rng(4)
+    for n in [3, 8, 19]:
+        for _ in range(5):
+            ionisation, recombination = random_rates(rng, n)
+            fraction = steady_state(ionisation, recombination, ne_tau)
+            derivative = calculate_derivative(0.0, fraction, ionisation, recombination, 1.0, ne_tau)
+            scale = (
+                ionisation * fraction
+                + shift(ionisation * fraction, +1)
+                + recombination * shift(fraction, -1)
+                + shift(recombination, +1) * fraction
+                + fraction / ne_tau
+            )
+            assert np.all(np.abs(derivative) <= 1e-10 * np.maximum(scale, 1e-300))
+
+
+@pytest.mark.parametrize("n", [2, 5, 12])
+def test_steady_state_matches_converged_time_evolution(n):
+    # The slowest timescale is far below evolution_stop, so the time evolution has converged.
+    dataset = synthetic_dataset(n, wide_rates=True, evolution_stop=1e3, ne_tau=(1e16, 1e18, 1e19))
+
+    evolved = calculate_time_evolution(dataset).isel(dim_time=-1)
+    direct = calculate_steady_state_fractional_abundances(dataset)
+
+    evolved = evolved.transpose(*direct.dims).pint.dequantify().values
+    direct = direct.pint.dequantify().values
+
+    # assert_allclose treats NaN as equal to NaN, so check the inputs are sane first.
+    assert np.all(np.isfinite(evolved)) and np.all(np.isfinite(direct))
+    np.testing.assert_allclose(direct.sum(axis=-1), 1.0, rtol=1e-12)
+    # The solver tolerance is rtol=1e-3 per step, but the converged state agrees far better; the floor is for rare states.
+    np.testing.assert_allclose(evolved, direct, rtol=1e-6, atol=1e-12)
 
 
 def test_cli_exposes_time_evolution_flag():
