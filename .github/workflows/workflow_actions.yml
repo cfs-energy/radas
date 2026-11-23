@@ -84,6 +84,21 @@ jobs:
       - name: Type check
         run: poetry run ty check
 
+  # --- DEPENDENCY REVIEW: FAIL PRS THAT ADD OR BUMP A VULNERABLE DEPENDENCY ---
+  # Pull requests only, and deliberately not in build_release's needs: a skipped job would skip the release.
+  dependency_review:
+    name: Dependency review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/dependency-review-action@v5
+        with:
+          fail-on-severity: moderate
+
   # --- JOB 3: RUN RADAS COMMAND, CHECK IT WORKS WITH DEFAULT CONFIG ---
   test_radas:
     name: Test radas command
