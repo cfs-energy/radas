@@ -49,7 +49,7 @@ jobs:
         run: poetry install --with dev
 
       - name: Run Pytest
-        run: poetry run pytest  # coverage gate (--cov-fail-under) comes from pyproject.toml
+        run: poetry run pytest --cov-fail-under=81  # the coverage floor is enforced in CI only, so partial local runs pass
 
       - name: Smoke test package installation
         run: |

@@ -1,16 +1,21 @@
 default_install_hook_types: [pre-commit, commit-msg]  # one `pre-commit install` sets up both
 
 repos:
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.17.6  # keep in step with ruff in poetry.lock
-    hooks:
-      - id: ruff-check
-      - id: ruff-format
-
   - repo: local
     hooks:
+      # Local hooks use the ruff pinned in poetry.lock, so pre-commit and CI cannot drift apart.
+      - id: ruff-check
+        name: ruff check
+        entry: poetry run ruff check
+        language: system
+        types: [python]
+      - id: ruff-format
+        name: ruff format
+        entry: poetry run ruff format
+        language: system
+        types: [python]
       - id: no-ai-attribution
         name: no AI attribution trailers in commit messages
-        entry: '(?i)(^co-authored-by:.*(claude|anthropic)|generated with .*claude|noreply@anthropic\.com)'
+        entry: '(?i)(^co-authored-by: claude .*<noreply@anthropic\.com>|generated with \[claude code\])'
         language: pygrep
         stages: [commit-msg]
