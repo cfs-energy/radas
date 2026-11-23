@@ -1,3 +1,5 @@
+"""Time evolution of charge-state fractions."""
+
 import numpy as np
 import xarray as xr
 from scipy.integrate import solve_ivp
@@ -64,6 +66,7 @@ def calculate_time_evolution(dataset: xr.Dataset) -> xr.Dataset:
 
 
 def shift(arr, num, fill_value=0.0):
+    """Shift the elements of arr by num positions along the first axis, filling vacated entries with fill_value."""
     result = np.empty_like(arr)
     if num > 0:
         result[:num] = fill_value

@@ -8,18 +8,19 @@ import warnings
 
 
 def is_significantly_below(requested, limit):
+    """Return True if requested is below limit by more than numerical tolerance."""
     return requested < limit and not np.isclose(requested, limit)
 
 
 def is_significantly_above(requested, limit):
+    """Return True if requested is above limit by more than numerical tolerance."""
     return requested > limit and not np.isclose(requested, limit)
 
 
 def interpolate_array(
     array: xr.DataArray, new_electron_density: NDArray[np.floating], new_electron_temp: NDArray[np.floating]
 ) -> xr.DataArray:
-    """
-    Interpolate rate coefficients onto a new density/temperature grid in log-log space.
+    """Interpolate rate coefficients onto a new density/temperature grid in log-log space.
 
     Uses nearest-neighbor extrapolation by clipping out-of-bounds coordinates to
     the original grid edges.

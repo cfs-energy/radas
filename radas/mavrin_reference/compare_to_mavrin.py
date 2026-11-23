@@ -1,3 +1,5 @@
+"""Compare radas results to the Mavrin polynomial fits."""
+
 import xarray as xr
 from pathlib import Path
 import matplotlib.pyplot as plt
@@ -9,14 +11,23 @@ from ..unit_handling import ureg, magnitude_in_units
 
 
 def compare_radas_to_mavrin(output_dir: Path):
-
+    """Compare radas results to the Mavrin fits for every species with a NetCDF file in output_dir."""
     for output_file in output_dir.iterdir():
         if output_file.suffix == ".nc":
             species = output_file.stem
             compare_radas_to_mavrin_per_species(output_dir, species)
 
 
+def _mavrin_fit_or_none(mavrin_data: dict, key: str, Te, ne_tau, units=None):
+    """Evaluate the Mavrin fit for key, or return None if Mavrin provides no fit for it."""
+    if key not in mavrin_data:
+        return None
+    fit = compute_Mavrin_polynomial_fit(Te, ne_tau, coeff=mavrin_data[key])
+    return fit if units is None else fit.pint.quantify(units)
+
+
 def compare_radas_to_mavrin_per_species(output_dir: Path, species: str, max_decades: int = 4, show: bool = False):
+    """Plot the radas equilibrium Lz and mean charge state against the Mavrin fits for one species."""
     mavrin_data = read_mavrin_data()
 
     ds = xr.open_dataset(output_dir / f"{species}.nc").pint.quantify()
@@ -25,22 +36,13 @@ def compare_radas_to_mavrin_per_species(output_dir: Path, species: str, max_deca
     Te = ds["electron_temp"]
     ne_tau = ds["ne_tau"]
 
-    if f"{species}_Lz" in mavrin_data:
-        Lz_coeffs = mavrin_data.get(f"{species}_Lz")
-        Lz_mavrin = compute_Mavrin_polynomial_fit(Te, ne_tau, coeff=Lz_coeffs).pint.quantify(ureg.W * ureg.m**3)
-    else:
-        Lz_mavrin = None
-
-    if f"{species}_mean_charge" in mavrin_data:
-        mean_charge_coeffs = mavrin_data.get(f"{species}_mean_charge")
-        mean_charge_mavrin = compute_Mavrin_polynomial_fit(Te, ne_tau, coeff=mean_charge_coeffs)
-    else:
-        mean_charge_mavrin = None
+    Lz_mavrin = _mavrin_fit_or_none(mavrin_data, f"{species}_Lz", Te, ne_tau, units=ureg.W * ureg.m**3)
+    mean_charge_mavrin = _mavrin_fit_or_none(mavrin_data, f"{species}_mean_charge", Te, ne_tau)
 
     Lz_radas = ds["equilibrium_Lz"].pint.to(ureg.W * ureg.m**3)
     mean_charge_radas = ds["equilibrium_mean_charge_state"].pint.to(ureg.dimensionless)
 
-    fig, axs = plt.subplots(ncols=2, nrows=2, sharex="all", sharey="row")
+    _, axs = plt.subplots(ncols=2, nrows=2, sharex="all", sharey="row")
 
     for i in range(ds.sizes["dim_ne_tau"]):
         ne_tau = ds.ne_tau.isel(dim_ne_tau=i).item()

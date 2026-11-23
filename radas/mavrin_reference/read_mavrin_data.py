@@ -1,3 +1,5 @@
+"""Read the Mavrin polynomial-fit coefficients."""
+
 import xarray as xr
 import numpy as np
 import warnings
@@ -5,9 +7,9 @@ from ..unit_handling import ureg, convert_units, magnitude
 
 
 def read_mavrin_data():
+    """Open the Mavrin dataset from a yaml file."""
     from ..shared import open_yaml_file, mavrin_data_file
 
-    "Opens the Mavrin dataset from a yaml file."
     return open_yaml_file(mavrin_data_file)
 
 

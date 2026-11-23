@@ -1,3 +1,5 @@
+"""Read OpenADAS rate coefficients into an xarray Dataset."""
+
 from .unit_handling import Quantity, ureg, convert_units, dimensionless_magnitude
 from .adas_interface.determine_adas_dataset_type import (
     determine_reader_class_and_config,
@@ -15,8 +17,7 @@ reference_electron_temp = Quantity(1.0, ureg.eV)
 
 
 def read_rate_coeff(data_file_dir, species_name, config, verbose=0):
-    """
-    Main pipeline to assemble an atomic rate dataset for a specific species.
+    """Main pipeline to assemble an atomic rate dataset for a specific species.
 
     Reads raw ADAS files, standardizes their grids, aligns charge states,
     and attaches metadata.
@@ -36,7 +37,7 @@ def read_rate_coeff(data_file_dir, species_name, config, verbose=0):
     try:
         dataset = xr.merge([v.rename(k) for k, v in rate_coefficients.items()], join="exact")
     except xr.AlignmentError as e:
-        raise xr.AlignmentError(f"Alignment failed for {species_name}: {e}")
+        raise xr.AlignmentError(f"Alignment failed for {species_name}: {e}") from e
 
     if dataset.sizes["dim_electron_density"] <= 2 or dataset.sizes["dim_electron_temp"] <= 2:
         raise xr.AlignmentError(f"Alignment resulted in dataset sizes {dataset.sizes} for {species_name}.")
@@ -89,15 +90,14 @@ def build_sorted_dictionary_of_rate_coefficients(config, species_name, data_file
         rate_coefficients[dataset_type] = rate_dataset.rate_coefficient
 
     # Sort keys by year descending
-    sorted_keys = sorted(years, key=years.get, reverse=True)
+    sorted_keys = sorted(years, key=lambda dataset_type: years[dataset_type], reverse=True)
     return {k: rate_coefficients[k] for k in sorted_keys}
 
 
 def interpolate_rates_onto_matching_grids(config, species_name, rate_coefficients, verbose):
     """Resample all rate coefficients to a uniform log-grid defined by the newest dataset."""
-
     # Use the range of the most recent dataset to define the master grid
-    most_recent_rate_coeff = list(rate_coefficients.values())[0]
+    most_recent_rate_coeff = next(iter(rate_coefficients.values()))
 
     new_electron_density = np.logspace(
         np.log10(most_recent_rate_coeff["dim_electron_density"].min().item()),
@@ -133,9 +133,9 @@ def interpolate_rates_onto_matching_grids(config, species_name, rate_coefficient
     return interpolated_rate_coefficients
 
 
-def write_global_attributes(dataset: xr.Dataset, globals: dict) -> xr.Dataset:
+def write_global_attributes(dataset: xr.Dataset, global_config: dict) -> xr.Dataset:
     """Attach global configuration parameters to the dataset as attributes or DataArrays."""
-    for attribute, value in globals.items():
+    for attribute, value in global_config.items():
         if isinstance(value, dict):
             # Complex attributes (with units) are added as coordinates/DataArrays
             if np.ndim(value["value"]) >= 1:
@@ -184,8 +184,7 @@ def build_adf11_rate_dataset(data_file_dir, species_name, year, dataset_type, da
 
 
 def align_rates_on_charge_states(dataset: xr.Dataset) -> xr.Dataset:
-    """
-    Standardize charge state mapping so index 'k' always refers to the reactant.
+    """Standardize charge state mapping so index 'k' always refers to the reactant.
 
     For k+1 -> k reactions (e.g. recombination), the rates are shifted so that
     index k represents the species being recombined.

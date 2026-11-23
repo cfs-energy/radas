@@ -1,10 +1,12 @@
+"""Command line interface for radas."""
+
 import click
 import xarray as xr
 import multiprocessing as mp
 from pathlib import Path
 from functools import partial
-from typing import Optional
 import contextlib
+from collections.abc import Iterator, Sequence
 
 from .shared import open_yaml_file, default_config_file
 from .adas_interface.download_adas_datasets import download_species_data
@@ -47,8 +49,8 @@ from .mavrin_reference import compare_radas_to_mavrin
 )
 def run_radas_cli(
     directory: Path,
-    config: Optional[str],
-    species: list[str],
+    config: str | None,
+    species: Sequence[str],
     verbose: int,
     debug: bool,
 ):
@@ -60,19 +62,13 @@ def run_radas_cli(
     If species is given, it must be a valid species name (i.e. 'hydrogen').
     Otherwise, all valid species in the config.yaml file are evaluated.
     """
-    kwargs = dict(
-        directory=directory,
-        config=config,
-        species=species,
-        verbose=verbose,
-        debug=debug,
-    )
+    run = partial(run_radas, directory=directory, config=config, species=species, verbose=verbose, debug=debug)
 
     if debug:
         with _post_mortem_debugger():
-            run_radas(**kwargs)
+            run()
     else:
-        run_radas(**kwargs)
+        run()
 
 
 def _post_mortem_debugger():
@@ -85,14 +81,42 @@ def _post_mortem_debugger():
     return launch_ipdb_on_exception()
 
 
+def _requested_species(configuration: dict, species: Sequence[str]) -> Iterator[tuple[str, dict]]:
+    """Yield the (name, config) of every requested species that has data files defined."""
+    for species_name, species_config in configuration["species"].items():
+        if "data_files" in species_config and ((species_name in species) or (species == ("all",))):
+            yield species_name, species_config
+
+
+def _compute_datasets(datasets: dict[str, xr.Dataset], species: Sequence[str], output_dir: Path, verbose: int, debug: bool):
+    """Run the radas computation for each dataset, in parallel unless debugging."""
+    if debug:
+        for ds in datasets.values():
+            run_radas_computation(ds, output_dir=output_dir, verbose=verbose)
+        return
+
+    with mp.Pool() as pool:
+        if species != ("all",):
+            datasets = {species_name: datasets[species_name] for species_name in species}
+
+        # Sort by atomic number, to process heavier elements first since they take longer
+        # N.b. there will be a race condition, so it might not appear these start first
+        sorted_datasets = dict(sorted(datasets.items(), key=lambda item: item[1].atomic_number, reverse=True))
+
+        pool.map(
+            partial(run_radas_computation, output_dir=output_dir, verbose=verbose),
+            list(sorted_datasets.values()),
+        )
+
+
 def run_radas(
     directory: Path,
-    config: Optional[str],
-    species: list[str],
+    config: str | None,
+    species: Sequence[str],
     verbose: int,
     debug: bool,
 ):
-
+    """Download the OpenADAS data for the requested species, compute radiated power curves and write the outputs."""
     radas_dir = Path(directory)
     if verbose:
         print(f"Running radas in {radas_dir.absolute()}")
@@ -113,45 +137,24 @@ def run_radas(
 
         if verbose:
             print(f"Downloading data from OpenADAS to {data_file_dir.absolute()}")
-        for species_name, species_config in configuration["species"].items():
-            if "data_files" in species_config and ((species_name in species) or (species == ("all",))):
-                download_species_data(
-                    data_file_dir,
-                    species_name,
-                    species_config,
-                    configuration["data_file_config"],
-                    verbose=verbose,
-                )
+        for species_name, species_config in _requested_species(configuration, species):
+            download_species_data(
+                data_file_dir,
+                species_name,
+                species_config,
+                configuration["data_file_config"],
+                verbose=verbose,
+            )
 
         if verbose:
             print("Reading rate coefficients")
-        datasets = dict()
-        for species_name, species_config in configuration["species"].items():
-            if "data_files" in species_config and ((species_name in species) or (species == ("all",))):
-                datasets[species_name] = read_rate_coeff(
-                    data_file_dir,
-                    species_name,
-                    configuration,
-                    verbose=verbose,
-                )
+        datasets = {
+            species_name: read_rate_coeff(data_file_dir, species_name, configuration, verbose=verbose)
+            for species_name, _ in _requested_species(configuration, species)
+        }
 
         output_dir.mkdir(exist_ok=True, parents=True)
-        if not debug:
-            with mp.Pool() as pool:
-                if species != ("all",):
-                    datasets = {species_name: datasets[species_name] for species_name in species}
-
-                # Sort by atomic number, to process heavier elements first since they take longer
-                # N.b. there will be a race condition, so it might not appear these start first
-                sorted_datasets = dict(sorted(datasets.items(), key=lambda item: item[1].atomic_number, reverse=True))
-
-                pool.map(
-                    partial(run_radas_computation, output_dir=output_dir, verbose=verbose),
-                    [(ds) for ds in sorted_datasets.values()],
-                )
-        else:
-            for ds in datasets.values():
-                run_radas_computation(ds, output_dir=output_dir, verbose=verbose)
+        _compute_datasets(datasets, species, output_dir, verbose, debug)
 
     if verbose:
         print(f"Generating plots and saving output to {output_dir}")
@@ -162,9 +165,7 @@ def run_radas(
 
 
 def run_radas_computation(dataset: xr.Dataset, output_dir: Path, verbose: int):
-    """Calculate several dependent quantities based on the atomic rates, and store
-    the result as a NetCDF file.
-    """
+    """Calculate several dependent quantities based on the atomic rates, and store the result as a NetCDF file."""
     if verbose:
         print(f"Running computation for {dataset.species_name}")
 
@@ -195,6 +196,7 @@ def run_radas_computation(dataset: xr.Dataset, output_dir: Path, verbose: int):
     help="Output path for a config file. DEFAULT: ./config.yaml",
 )
 def write_config_template(output: Path):
+    """Copy the default config.yaml to the requested output path."""
     output = Path(output).absolute()
     print(f"Copying {default_config_file} to {output}")
     output.write_text(default_config_file.read_text())

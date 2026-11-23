@@ -27,7 +27,7 @@ def test_download_species_data(data_file_dir, selected_species, configuration, v
     species_config = configuration["species"][selected_species]
 
     # Call twice to check if reuse works
-    for i in range(2):
+    for _ in range(2):
         download_species_data(
             data_file_dir,
             selected_species,

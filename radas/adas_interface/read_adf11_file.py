@@ -1,3 +1,5 @@
+"""Reader for OpenADAS ADF11 files."""
+
 from pathlib import Path
 import importlib.util
 from .fortran_reader import FReader, read_single_values, read_1d_array, read_2d_array
@@ -5,7 +7,10 @@ import numpy as np
 
 
 def load_library(library_name: str, filepath: Path):
+    """Import a Python module from a file path."""
     spec = importlib.util.spec_from_file_location(library_name, filepath)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Cannot load {library_name} from {filepath}.")
 
     library = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(library)
@@ -18,7 +23,6 @@ def read_adf11_file(data_file_dir, species_name, year, dataset_type) -> dict:
 
     Uses the format specification from https://www.adas.ac.uk/man/appxa-11.pdf
     """
-
     year_key = f"{year}"[-2:]
     filename = data_file_dir / f"{species_name}_{dataset_type}_{year_key}.dat"
     if not filename.exists():

@@ -1,3 +1,5 @@
+"""Plasma radiated power calculated using OpenADAS."""
+
 from .unit_handling import (
     DimensionalityError,
     UnitStrippedWarning,
@@ -22,18 +24,18 @@ from .time_evolution import calculate_time_evolution
 
 __all__ = [
     "DimensionalityError",
-    "UnitStrippedWarning",
-    "ureg",
     "Quantity",
-    "convert_units",
-    "magnitude",
-    "dimensionless_magnitude",
-    "run_radas_cli",
-    "run_radas",
-    "run_radas_computation",
-    "read_rate_coeff",
-    "calculate_coronal_fractional_abundances",
+    "UnitStrippedWarning",
     "calculate_Lz",
+    "calculate_coronal_fractional_abundances",
     "calculate_time_evolution",
+    "convert_units",
+    "dimensionless_magnitude",
+    "magnitude",
+    "read_rate_coeff",
+    "run_radas",
+    "run_radas_cli",
+    "run_radas_computation",
+    "ureg",
     "write_config_template",
 ]

@@ -1,10 +1,11 @@
+"""Reader for Fortran-formatted OpenADAS files."""
+
 import numpy as np
 from fortranformat import FortranRecordReader as FReader
 
 
 def read_single_values(list_of_lines, format_spec, start_at_line):
-    """
-    Makes a 'generator', which is a special Python object that returns a value each time that it is called.
+    """Makes a 'generator', which is a special Python object that returns a value each time that it is called.
 
     This generator reads each line in the list of lines, and tries to format it according to format_spec
     For instance, the default format '5e16.9' will try to read 5 fortran-formatted floats in exponential format
@@ -35,9 +36,7 @@ def read_single_values(list_of_lines, format_spec, start_at_line):
 
 
 def read_1d_array(generator, number_of_values):
-    """
-    Take number_of_values from the generator and write it into a 1D array
-    """
+    """Take number_of_values from the generator and write it into a 1D array."""
     array = np.zeros(number_of_values)
     line_number, value_position = 0, 0
 
@@ -55,9 +54,9 @@ def read_1d_array(generator, number_of_values):
 
 
 def read_2d_array(generator, rows, columns, fortran_order_arrays=False):
-    """
-    Take rows*columns from the generator and write it into a 2D array of
-    shape (rows, columns), or (columns, rows) if transpose = True
+    """Take rows*columns from the generator and write it into a 2D array.
+
+    The shape is (rows, columns), or (columns, rows) if transpose = True.
     """
     number_of_values = rows * columns
     array, line_number, value_position = read_1d_array(generator, number_of_values)
