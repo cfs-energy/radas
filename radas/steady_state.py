@@ -1,3 +1,5 @@
+"""Direct solve for the equilibrium charge-state fractions."""
+
 import numpy as np
 import xarray as xr
 from numba import njit

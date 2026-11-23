@@ -1,3 +1,6 @@
+# ruff: noqa: D103
+"""Tests for the direct steady-state charge-state solver."""
+
 from fractions import Fraction
 
 import numpy as np
@@ -48,7 +51,7 @@ def test_steady_state_matches_exact_solution(ne_tau):
             fraction = steady_state(ionisation, recombination, ne_tau)
             exact = exact_steady_state(ionisation, recombination, ne_tau)
             peak = max(exact)
-            for computed, reference in zip(fraction, exact):
+            for computed, reference in zip(fraction, exact, strict=True):
                 if reference > 1e-10 * peak:
                     assert abs(Fraction(float(computed)) - reference) / reference < 1e-12
 
