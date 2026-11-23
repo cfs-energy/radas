@@ -1,5 +1,5 @@
 globals:
-  # How long to run the time-integrator for (in s)
+  # How long to run the time-integrator for (in s), used only with --time-evolution
   evolution_start:
     value: 1.0E-8
     units: "s"

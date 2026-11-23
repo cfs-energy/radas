@@ -14,6 +14,7 @@ from .read_rate_coeffs import read_rate_coeff
 
 from .coronal_equilibrium import calculate_coronal_fractional_abundances
 from .radiated_power import calculate_Lz
+from .steady_state import calculate_steady_state_fractional_abundances
 from .time_evolution import calculate_time_evolution
 from .unit_handling import convert_units, ureg
 from .mavrin_reference import compare_radas_to_mavrin
@@ -47,12 +48,18 @@ from .mavrin_reference import compare_radas_to_mavrin
     is_flag=True,
     help="Flag to enable debug mode (disables multiprocessing).",
 )
+@click.option(
+    "--time-evolution",
+    is_flag=True,
+    help="Also time-integrate the charge-state fractions and store them as charge_state_evolution (slow).",
+)
 def run_radas_cli(
     directory: Path,
     config: str | None,
     species: Sequence[str],
     verbose: int,
     debug: bool,
+    time_evolution: bool,
 ):
     """Runs the radas program.
 
@@ -62,7 +69,15 @@ def run_radas_cli(
     If species is given, it must be a valid species name (i.e. 'hydrogen').
     Otherwise, all valid species in the config.yaml file are evaluated.
     """
-    run = partial(run_radas, directory=directory, config=config, species=species, verbose=verbose, debug=debug)
+    run = partial(
+        run_radas,
+        directory=directory,
+        config=config,
+        species=species,
+        verbose=verbose,
+        debug=debug,
+        time_evolution=time_evolution,
+    )
 
     if debug:
         with _post_mortem_debugger():
@@ -88,11 +103,18 @@ def _requested_species(configuration: dict, species: Sequence[str]) -> Iterator[
             yield species_name, species_config
 
 
-def _compute_datasets(datasets: dict[str, xr.Dataset], species: Sequence[str], output_dir: Path, verbose: int, debug: bool):
+def _compute_datasets(
+    datasets: dict[str, xr.Dataset],
+    species: Sequence[str],
+    output_dir: Path,
+    verbose: int,
+    debug: bool,
+    time_evolution: bool,
+):
     """Run the radas computation for each dataset, in parallel unless debugging."""
     if debug:
         for ds in datasets.values():
-            run_radas_computation(ds, output_dir=output_dir, verbose=verbose)
+            run_radas_computation(ds, output_dir=output_dir, verbose=verbose, time_evolution=time_evolution)
         return
 
     with mp.Pool() as pool:
@@ -104,7 +126,7 @@ def _compute_datasets(datasets: dict[str, xr.Dataset], species: Sequence[str], o
         sorted_datasets = dict(sorted(datasets.items(), key=lambda item: item[1].atomic_number, reverse=True))
 
         pool.map(
-            partial(run_radas_computation, output_dir=output_dir, verbose=verbose),
+            partial(run_radas_computation, output_dir=output_dir, verbose=verbose, time_evolution=time_evolution),
             list(sorted_datasets.values()),
         )
 
@@ -115,6 +137,7 @@ def run_radas(
     species: Sequence[str],
     verbose: int,
     debug: bool,
+    time_evolution: bool = False,
 ):
     """Download the OpenADAS data for the requested species, compute radiated power curves and write the outputs."""
     radas_dir = Path(directory)
@@ -154,7 +177,7 @@ def run_radas(
         }
 
         output_dir.mkdir(exist_ok=True, parents=True)
-        _compute_datasets(datasets, species, output_dir, verbose, debug)
+        _compute_datasets(datasets, species, output_dir, verbose, debug, time_evolution)
 
     if verbose:
         print(f"Generating plots and saving output to {output_dir}")
@@ -164,8 +187,11 @@ def run_radas(
         print("Done")
 
 
-def run_radas_computation(dataset: xr.Dataset, output_dir: Path, verbose: int):
-    """Calculate several dependent quantities based on the atomic rates, and store the result as a NetCDF file."""
+def run_radas_computation(dataset: xr.Dataset, output_dir: Path, verbose: int, time_evolution: bool = False):
+    """Calculate several dependent quantities based on the atomic rates, and store the result as a NetCDF file.
+
+    The equilibrium is solved for directly; time_evolution also stores the (slow) time history.
+    """
     if verbose:
         print(f"Running computation for {dataset.species_name}")
 
@@ -173,11 +199,10 @@ def run_radas_computation(dataset: xr.Dataset, output_dir: Path, verbose: int):
     dataset["coronal_mean_charge_state"] = (dataset.coronal_charge_state_fraction * dataset.dim_charge_state).sum(dim="dim_charge_state")
     dataset["coronal_Lz"] = calculate_Lz(dataset, dataset.coronal_charge_state_fraction)
     dataset["residence_time"] = convert_units(dataset.ne_tau / dataset.electron_density, ureg.s)
-    dataset["charge_state_evolution"] = calculate_time_evolution(dataset)
-    dataset["equilibrium_charge_state_fraction"] = dataset.charge_state_evolution.isel(dim_time=-1)
-    dataset["equilibrium_mean_charge_state"] = (dataset.equilibrium_charge_state_fraction * dataset.dim_charge_state).sum(
-        dim="dim_charge_state"
-    )
+    if time_evolution:
+        dataset["charge_state_evolution"] = calculate_time_evolution(dataset)
+    dataset["equilibrium_charge_state_fraction"] = calculate_steady_state_fractional_abundances(dataset)
+    dataset["equilibrium_mean_charge_state"] = (dataset.equilibrium_charge_state_fraction * dataset.dim_charge_state).sum(dim="dim_charge_state")
     dataset["equilibrium_Lz"] = calculate_Lz(dataset, dataset.equilibrium_charge_state_fraction)
 
     output_dir.mkdir(exist_ok=True)
