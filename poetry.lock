@@ -1147,14 +1147,14 @@ xmp = ["defusedxml"]
 
 [[package]]
 name = "pint"
-version = "0.25.3"
+version = "0.26.2"
 description = "Physical quantities module"
 optional = false
-python-versions = ">=3.11"
+python-versions = ">=3.12"
 groups = ["main"]
 files = [
-    {file = "pint-0.25.3-py3-none-any.whl", hash = "sha256:27eb25143bd5de9fcc4d5a4b484f16faf6b4615aa93ece6b3373a8c1a3c1b97d"},
-    {file = "pint-0.25.3.tar.gz", hash = "sha256:f8f5df6cf65314d74da1ade1bf96f8e3e4d0c41b51577ac53c49e7d44ca5acee"},
+    {file = "pint-0.26.2-py3-none-any.whl", hash = "sha256:c94124cdb19baa1a84bb65c8bb9a620a9636b9b9cd80f32f30ad7ff795ea2eb8"},
+    {file = "pint-0.26.2.tar.gz", hash = "sha256:391e5d2fc01fdb121c113b8eb47386688575542c1f5144c465ff318bf5133573"},
 ]
 
 [package.dependencies]
@@ -1164,13 +1164,14 @@ platformdirs = ">=2.1.0"
 typing-extensions = ">=4.0.0"
 
 [package.extras]
-all = ["babel (<=2.8)", "dask (<2025.3.0)", "matplotlib", "numpy (>=1.23)", "pint-pandas (>=0.3)", "scipy", "uncertainties (>=3.1.6)", "xarray"]
-babel = ["babel (<=2.8)"]
+all = ["babel", "dask (<2025.3.0)", "matplotlib", "numpy (>=2.0.0)", "optype[numpy]", "pint-pandas (>=0.3)", "scipy", "uncertainties (>=3.1.6)", "xarray"]
+babel = ["babel"]
 codspeed = ["pytest", "pytest-benchmark", "pytest-codspeed", "pytest-cov", "pytest-mpl", "pytest-subtests"]
 dask = ["dask (<2025.3.0)"]
-docs = ["babel", "commonmark (==0.8.1)", "currencyconverter", "docutils", "graphviz", "ipykernel", "ipython (<=8.12)", "jupyter-client", "nbsphinx", "pooch", "pygments (>=2.4)", "recommonmark (==0.5.0)", "sciform", "scipy", "serialize", "sparse", "sphinx (>=6,<8.2)", "sphinx-book-theme (>=1.1.0)", "sphinx-copybutton", "sphinx-design"]
+docs = ["babel", "commonmark (==0.8.1)", "currencyconverter", "dask[complete] (<2025.3.0)", "docutils", "graphviz", "ipykernel", "ipython (<=8.12)", "jupyter-client", "jupyterlite-pyodide-kernel (>=0.4)", "jupyterlite-sphinx (>=0.20)", "matplotlib", "nbsphinx", "numba (>=0.59)", "numpy (<2.5)", "optype[numpy]", "pooch", "pygments (>=2.4)", "recommonmark (==0.5.0)", "sciform", "scipy", "serialize", "sparse", "sphinx (>=6,<8.2)", "sphinx-book-theme (>=1.1.0)", "sphinx-copybutton", "sphinx-design", "xarray"]
 matplotlib = ["matplotlib"]
-numpy = ["numpy (>=1.23)"]
+numpy = ["numpy (>=2.0.0)"]
+optype = ["optype[numpy]"]
 pandas = ["pint-pandas (>=0.3)"]
 scipy = ["scipy"]
 test = ["pytest", "pytest-benchmark", "pytest-cov", "pytest-subtests"]
@@ -1756,4 +1757,4 @@ viz = ["cartopy (>=0.24)", "matplotlib (>=3.10)", "nc-time-axis", "seaborn"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12"
-content-hash = "f5c73fcdbee76a418c4effa58a96645bb8b64685dd7edcf02a22c2758f6c7b83"
+content-hash = "ed8791865faf8a69fe02635ca8d7a8b887185173210a76b6841663273efef22c"
