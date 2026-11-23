@@ -13,11 +13,9 @@ def load_library(library_name: str, filepath: Path):
     return library
 
 
-def read_adf11_file(
-    data_file_dir, species_name, year, dataset_type
-) -> dict:
+def read_adf11_file(data_file_dir, species_name, year, dataset_type) -> dict:
     """Open and read an ADF11 OpenADAS file.
-    
+
     Uses the format specification from https://www.adas.ac.uk/man/appxa-11.pdf
     """
 
@@ -31,7 +29,7 @@ def read_adf11_file(
     IZMAX, IDMAXD, ITMAXD, IZ1MIN, IZ1MAX = FReader("5i5").read(f[0])
 
     # Initialise the value reader
-    
+
     # IMPORTANT: do not reinitialise the reader, since otherwise we'll loose the position of the reader
     # Note that line_numbers will be reported from the read-offset
     value_reader = read_single_values(f, start_at_line=2, format_spec="8f10.5")
@@ -46,14 +44,14 @@ def read_adf11_file(
         DRCOFD[IZ1, :, :], line_number, _ = read_2d_array(value_reader, rows=IDMAXD, columns=ITMAXD, fortran_order_arrays=False)
 
     data = dict(
-        IZMAX = IZMAX,
-        IDMAXD = IDMAXD,
-        ITMAXD = ITMAXD,
-        IZ1MIN = IZ1MIN,
-        IZ1MAX = IZ1MAX,
-        DDENSD = DDENSD,
-        DTEVD = DTEVD,
-        DRCOFD = DRCOFD,
+        IZMAX=IZMAX,
+        IDMAXD=IDMAXD,
+        ITMAXD=ITMAXD,
+        IZ1MIN=IZ1MIN,
+        IZ1MAX=IZ1MAX,
+        DDENSD=DDENSD,
+        DTEVD=DTEVD,
+        DRCOFD=DRCOFD,
     )
 
     return data

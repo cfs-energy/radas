@@ -16,7 +16,7 @@ def compare_radas_to_mavrin(output_dir: Path):
             compare_radas_to_mavrin_per_species(output_dir, species)
 
 
-def compare_radas_to_mavrin_per_species(output_dir: Path, species: str, max_decades: int = 4, show: bool=False):
+def compare_radas_to_mavrin_per_species(output_dir: Path, species: str, max_decades: int = 4, show: bool = False):
     mavrin_data = read_mavrin_data()
 
     ds = xr.open_dataset(output_dir / f"{species}.nc").pint.quantify()
@@ -27,18 +27,13 @@ def compare_radas_to_mavrin_per_species(output_dir: Path, species: str, max_deca
 
     if f"{species}_Lz" in mavrin_data:
         Lz_coeffs = mavrin_data.get(f"{species}_Lz")
-        Lz_mavrin = (
-            compute_Mavrin_polynomial_fit(Te, ne_tau, coeff=Lz_coeffs)
-            .pint.quantify(ureg.W * ureg.m**3)
-        )
+        Lz_mavrin = compute_Mavrin_polynomial_fit(Te, ne_tau, coeff=Lz_coeffs).pint.quantify(ureg.W * ureg.m**3)
     else:
         Lz_mavrin = None
 
     if f"{species}_mean_charge" in mavrin_data:
         mean_charge_coeffs = mavrin_data.get(f"{species}_mean_charge")
-        mean_charge_mavrin = compute_Mavrin_polynomial_fit(
-            Te, ne_tau, coeff=mean_charge_coeffs
-        )
+        mean_charge_mavrin = compute_Mavrin_polynomial_fit(Te, ne_tau, coeff=mean_charge_coeffs)
     else:
         mean_charge_mavrin = None
 
@@ -59,13 +54,13 @@ def compare_radas_to_mavrin_per_species(output_dir: Path, species: str, max_deca
         mean_charge_radas.isel(dim_ne_tau=i).plot(ax=axs[1][0], color=f"C{i}")
         if mean_charge_mavrin is not None:
             mean_charge_mavrin.isel(dim_ne_tau=i).plot(ax=axs[1][1], color=f"C{i}")
-    
+
     ds["coronal_Lz"].pint.to(ureg.W * ureg.m**3).plot(ax=axs[0][0], color="k")
     axs[0][1].plot([], [], color="k", label="coronal")
     ds["coronal_mean_charge_state"].pint.to(ureg.dimensionless).plot(ax=axs[1][0], color="k")
 
     axs[0][1].legend()
-    
+
     Lz_radas_mag = magnitude_in_units(Lz_radas, ureg.W * ureg.m**3)
     Lz_coronal_mag = magnitude_in_units(ds["coronal_Lz"], ureg.W * ureg.m**3)
     Lz_min = min(Lz_radas_mag.min(), Lz_coronal_mag.min())
@@ -88,13 +83,13 @@ def compare_radas_to_mavrin_per_species(output_dir: Path, species: str, max_deca
     for ax in axs.flatten():
         ax.set_xscale("log")
         ax.set_xlabel("")
-    
+
     for ax in axs[-1][:].flatten():
         ax.set_xlabel("$T_e$ [$eV$]")
-    
+
     plt.suptitle(species)
 
     if show:
         plt.show()
-    
+
     plt.savefig(output_dir / f"{species}.png", dpi=300)

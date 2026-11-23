@@ -2,9 +2,7 @@ import xarray as xr
 from radas.unit_handling import convert_units, ureg
 
 
-def calculate_Lz(
-    dataset: xr.Dataset, charge_state_fraction: xr.DataArray
-) -> xr.DataArray:
+def calculate_Lz(dataset: xr.Dataset, charge_state_fraction: xr.DataArray) -> xr.DataArray:
     """Calculate the radiated power prefactor due to electron-impurity interactions.
 
     You can calculate P_rad_electron = n_e * n_z * electron_emission

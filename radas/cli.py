@@ -39,9 +39,7 @@ from .mavrin_reference import compare_radas_to_mavrin
     multiple=True,
     help="Species to perform analysis for ('species_name'|'all'|'none'). DEFAULT: all",
 )
-@click.option(
-    "-v", "--verbose", count=True, help="Write additional output to the command line."
-)
+@click.option("-v", "--verbose", count=True, help="Write additional output to the command line.")
 @click.option(
     "--debug",
     is_flag=True,
@@ -69,22 +67,23 @@ def run_radas_cli(
         verbose=verbose,
         debug=debug,
     )
-    
+
     if debug:
         with _post_mortem_debugger():
             run_radas(**kwargs)
     else:
         run_radas(**kwargs)
 
+
 def _post_mortem_debugger():
     """Context manager that drops into ipdb on unhandled exceptions, or a no-op if ipdb is not installed."""
     try:
         from ipdb import launch_ipdb_on_exception
     except ModuleNotFoundError:
-        print("Warning: --debug set but ipdb is not installed; "
-                "install with `pip install ipdb` for post-mortem debugging.")
+        print("Warning: --debug set but ipdb is not installed; install with `pip install ipdb` for post-mortem debugging.")
         return contextlib.nullcontext()
     return launch_ipdb_on_exception()
+
 
 def run_radas(
     directory: Path,
@@ -115,9 +114,7 @@ def run_radas(
         if verbose:
             print(f"Downloading data from OpenADAS to {data_file_dir.absolute()}")
         for species_name, species_config in configuration["species"].items():
-            if "data_files" in species_config and (
-                (species_name in species) or (species == ("all",))
-            ):
+            if "data_files" in species_config and ((species_name in species) or (species == ("all",))):
                 download_species_data(
                     data_file_dir,
                     species_name,
@@ -130,29 +127,26 @@ def run_radas(
             print("Reading rate coefficients")
         datasets = dict()
         for species_name, species_config in configuration["species"].items():
-            if "data_files" in species_config and (
-                (species_name in species) or (species == ("all",))
-            ):
+            if "data_files" in species_config and ((species_name in species) or (species == ("all",))):
                 datasets[species_name] = read_rate_coeff(
-                    data_file_dir, species_name, configuration, verbose=verbose,
+                    data_file_dir,
+                    species_name,
+                    configuration,
+                    verbose=verbose,
                 )
-        
+
         output_dir.mkdir(exist_ok=True, parents=True)
         if not debug:
             with mp.Pool() as pool:
                 if species != ("all",):
-                    datasets = {
-                        species_name: datasets[species_name] for species_name in species
-                    }
+                    datasets = {species_name: datasets[species_name] for species_name in species}
 
                 # Sort by atomic number, to process heavier elements first since they take longer
                 # N.b. there will be a race condition, so it might not appear these start first
                 sorted_datasets = dict(sorted(datasets.items(), key=lambda item: item[1].atomic_number, reverse=True))
-                
+
                 pool.map(
-                    partial(
-                        run_radas_computation, output_dir=output_dir, verbose=verbose
-                    ),
+                    partial(run_radas_computation, output_dir=output_dir, verbose=verbose),
                     [(ds) for ds in sorted_datasets.values()],
                 )
         else:
@@ -174,26 +168,16 @@ def run_radas_computation(dataset: xr.Dataset, output_dir: Path, verbose: int):
     if verbose:
         print(f"Running computation for {dataset.species_name}")
 
-    dataset["coronal_charge_state_fraction"] = calculate_coronal_fractional_abundances(
-        dataset
-    )
-    dataset["coronal_mean_charge_state"] = (
-        dataset.coronal_charge_state_fraction * dataset.dim_charge_state
-    ).sum(dim="dim_charge_state")
+    dataset["coronal_charge_state_fraction"] = calculate_coronal_fractional_abundances(dataset)
+    dataset["coronal_mean_charge_state"] = (dataset.coronal_charge_state_fraction * dataset.dim_charge_state).sum(dim="dim_charge_state")
     dataset["coronal_Lz"] = calculate_Lz(dataset, dataset.coronal_charge_state_fraction)
-    dataset["residence_time"] = convert_units(
-        dataset.ne_tau / dataset.electron_density, ureg.s
-    )
+    dataset["residence_time"] = convert_units(dataset.ne_tau / dataset.electron_density, ureg.s)
     dataset["charge_state_evolution"] = calculate_time_evolution(dataset)
-    dataset["equilibrium_charge_state_fraction"] = dataset.charge_state_evolution.isel(
-        dim_time=-1
+    dataset["equilibrium_charge_state_fraction"] = dataset.charge_state_evolution.isel(dim_time=-1)
+    dataset["equilibrium_mean_charge_state"] = (dataset.equilibrium_charge_state_fraction * dataset.dim_charge_state).sum(
+        dim="dim_charge_state"
     )
-    dataset["equilibrium_mean_charge_state"] = (
-        dataset.equilibrium_charge_state_fraction * dataset.dim_charge_state
-    ).sum(dim="dim_charge_state")
-    dataset["equilibrium_Lz"] = calculate_Lz(
-        dataset, dataset.equilibrium_charge_state_fraction
-    )
+    dataset["equilibrium_Lz"] = calculate_Lz(dataset, dataset.equilibrium_charge_state_fraction)
 
     output_dir.mkdir(exist_ok=True)
     dataset.pint.dequantify().to_netcdf(output_dir / f"{dataset.species_name}.nc")

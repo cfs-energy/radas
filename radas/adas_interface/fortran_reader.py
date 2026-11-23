@@ -1,6 +1,7 @@
 import numpy as np
 from fortranformat import FortranRecordReader as FReader
 
+
 def read_single_values(list_of_lines, format_spec, start_at_line):
     """
     Makes a 'generator', which is a special Python object that returns a value each time that it is called.
@@ -16,7 +17,7 @@ def read_single_values(list_of_lines, format_spec, start_at_line):
     for line_number, line in enumerate(list_of_lines):
         if line_number < start_at_line:
             continue
-        
+
         try:
             values = FReader(f"({format_spec})").read(line)
         except ValueError as e:
@@ -27,11 +28,11 @@ def read_single_values(list_of_lines, format_spec, start_at_line):
                 f"fortranformat error was: {e}"
             )
             raise ValueError(message) from e
-            
 
         for value_position, value in enumerate(values):
             if value is not None:
                 yield value, line_number, value_position
+
 
 def read_1d_array(generator, number_of_values):
     """
@@ -44,12 +45,14 @@ def read_1d_array(generator, number_of_values):
         value, line_number, value_position = next(generator)
 
         if i == 0:
-            assert value_position == 0, \
+            assert value_position == 0, (
                 "Arrays are always defined as starting on a new line, but the first element in this array is not at position 0"
+            )
 
         array[i] = value
 
     return array, line_number, value_position
+
 
 def read_2d_array(generator, rows, columns, fortran_order_arrays=False):
     """

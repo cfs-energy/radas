@@ -15,10 +15,7 @@ def download_species_data(
     data_file_dir.mkdir(exist_ok=True, parents=True)
 
     for dataset_type, file_to_download in species_config["data_files"].items():
-
-        reader_class, dataset_config = determine_reader_class_and_config(
-            data_file_config, dataset_type
-        )
+        reader_class, dataset_config = determine_reader_class_and_config(data_file_config, dataset_type)
 
         if isinstance(file_to_download, int):
             species_key = species_config["atomic_symbol"].lower()
@@ -46,6 +43,4 @@ def download_species_data(
         if "OPEN-ADAS Error" in output_filename.read_text():
             output_filename.unlink()
             if verbose:
-                print(
-                    f"Failed to download the {year} {dataset_prefix} for {species_name}"
-                )
+                print(f"Failed to download the {year} {dataset_prefix} for {species_name}")

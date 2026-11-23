@@ -42,19 +42,23 @@ def calculate_time_evolution(dataset: xr.Dataset) -> xr.Dataset:
 
         return result.y
 
-    charge_state_fraction = xr.apply_ufunc(
-        _time_evolve,
-        magnitude_in_units(dataset.effective_ionisation, ureg.m**3 / ureg.s),
-        magnitude_in_units(
-            dataset.effective_recombination.roll(dim_charge_state=-1),
-            ureg.m**3 / ureg.s,
-        ),
-        magnitude_in_units(dataset.electron_density, ureg.m**-3),
-        magnitude_in_units(dataset.ne_tau, ureg.m**-3 * ureg.s),
-        vectorize=True,
-        input_core_dims=[("dim_charge_state",), ("dim_charge_state",), (), ()],
-        output_core_dims=[("dim_charge_state", "dim_time")],
-    ).assign_coords(dim_time=evaluation_times).pint.quantify("")
+    charge_state_fraction = (
+        xr.apply_ufunc(
+            _time_evolve,
+            magnitude_in_units(dataset.effective_ionisation, ureg.m**3 / ureg.s),
+            magnitude_in_units(
+                dataset.effective_recombination.roll(dim_charge_state=-1),
+                ureg.m**3 / ureg.s,
+            ),
+            magnitude_in_units(dataset.electron_density, ureg.m**-3),
+            magnitude_in_units(dataset.ne_tau, ureg.m**-3 * ureg.s),
+            vectorize=True,
+            input_core_dims=[("dim_charge_state",), ("dim_charge_state",), (), ()],
+            output_core_dims=[("dim_charge_state", "dim_time")],
+        )
+        .assign_coords(dim_time=evaluation_times)
+        .pint.quantify("")
+    )
 
     return charge_state_fraction
 
@@ -93,9 +97,7 @@ def calculate_derivative(
     ionisation_to_above = effective_ionisation * charge_state_fraction
     ionisation_from_below = shift(effective_ionisation * charge_state_fraction, +1)
 
-    recombination_from_above = effective_recombination * shift(
-        charge_state_fraction, -1
-    )
+    recombination_from_above = effective_recombination * shift(charge_state_fraction, -1)
     recombination_to_below = shift(effective_recombination, +1) * charge_state_fraction
 
     change_in_charge_state_fraction = np.zeros_like(charge_state_fraction)
