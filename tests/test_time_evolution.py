@@ -1,3 +1,6 @@
+# ruff: noqa: D103
+"""Tests for the charge-state time evolution."""
+
 import numpy as np
 
 from radas.time_evolution import calculate_derivative, calculate_jacobian
