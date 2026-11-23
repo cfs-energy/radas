@@ -105,6 +105,14 @@ poetry run pytest
 ```
 to execute all of the tests in the `tests` folder.
 
+### Checks before opening a PR
+```bash
+poetry run pytest             # tests plus coverage; fails below the --cov-fail-under value in pyproject.toml (use --no-cov for a partial run)
+poetry run ty check           # type check (ty is pinned, since its diagnostics change between releases)
+pre-commit run --all-files    # ruff check and ruff format; `pre-commit install` (once) also rejects AI-attribution trailers in commit messages
+```
+CI runs the same checks.
+
 ### Pushing to PyPi
 
 **We have transitioned from a date-based versioning scheme (YYYY.MM.patch) to Semantic Versioning with an Epoch.**
