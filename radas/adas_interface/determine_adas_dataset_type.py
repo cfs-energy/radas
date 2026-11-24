@@ -1,3 +1,6 @@
+"""Look up which reader handles a given OpenADAS dataset type."""
+
+
 def determine_reader_class_and_config(data_file_config, dataset_type):
     """Examines the data_file_config to determine which reader class to use to read a specific dataset_type."""
     for reader_key, reader_config in data_file_config.items():

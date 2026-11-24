@@ -26,9 +26,7 @@ def rate_equation_terms(y, ionisation, recombination, ne_tau):
 
 def derivative_fsum(_, y, ionisation, recombination, electron_density, ne_tau=np.inf):
     """High-precision term sum using math.fsum (order-independent correctly rounded sum)."""
-    return electron_density * np.array(
-        [math.fsum(terms) for terms in rate_equation_terms(y, ionisation, recombination, ne_tau)]
-    )
+    return electron_density * np.array([math.fsum(terms) for terms in rate_equation_terms(y, ionisation, recombination, ne_tau)])
 
 
 def derivative_linear(_, y, ionisation, recombination, electron_density, ne_tau=np.inf):
@@ -38,7 +36,5 @@ def derivative_linear(_, y, ionisation, recombination, electron_density, ne_tau=
 
 
 def cancellation_scale(y, ionisation, recombination, ne_tau):
-    """Per-charge-state sum of absolute rate terms (before × ne)."""
-    return np.array(
-        [sum(abs(t) for t in terms) for terms in rate_equation_terms(y, ionisation, recombination, ne_tau)]
-    )
+    """Per-charge-state sum of absolute rate terms (before multiplying by ne)."""
+    return np.array([sum(abs(t) for t in terms) for terms in rate_equation_terms(y, ionisation, recombination, ne_tau)])

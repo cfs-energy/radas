@@ -1,4 +1,3 @@
-# ruff: noqa: D103
 """Tests for the charge-state time evolution."""
 
 import numpy as np

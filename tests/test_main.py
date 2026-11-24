@@ -1,3 +1,4 @@
+# ruff: noqa: D103
 """Run the main integrated radas program."""
 
 import pytest
@@ -27,7 +28,7 @@ def test_download_species_data(data_file_dir, selected_species, configuration, v
     species_config = configuration["species"][selected_species]
 
     # Call twice to check if reuse works
-    for i in range(2):
+    for _ in range(2):
         download_species_data(
             data_file_dir,
             selected_species,
@@ -43,9 +44,7 @@ def datasets(data_file_dir, selected_species, configuration, verbose):
 
     datasets = dict()
 
-    datasets[selected_species] = read_rate_coeff(
-        data_file_dir, selected_species, configuration
-    )
+    datasets[selected_species] = read_rate_coeff(data_file_dir, selected_species, configuration)
 
     return datasets
 
@@ -89,14 +88,8 @@ def test_compare_results_to_mavrin_reference(output_dir, selected_species):
     Lz_coeffs = mavrin_data[f"{selected_species}_Lz"]
     mean_charge_coeffs = mavrin_data[f"{selected_species}_mean_charge"]
 
-    Lz_mavrin = (
-        compute_Mavrin_polynomial_fit(Te, ne_tau, coeff=Lz_coeffs)
-        .squeeze()
-        .pint.quantify(ureg.W * ureg.m**3)
-    )
-    mean_charge_mavrin = compute_Mavrin_polynomial_fit(
-        Te, ne_tau, coeff=mean_charge_coeffs
-    ).squeeze()
+    Lz_mavrin = compute_Mavrin_polynomial_fit(Te, ne_tau, coeff=Lz_coeffs).squeeze().pint.quantify(ureg.W * ureg.m**3)
+    mean_charge_mavrin = compute_Mavrin_polynomial_fit(Te, ne_tau, coeff=mean_charge_coeffs).squeeze()
 
     Lz_radas = ds["equilibrium_Lz"]
     mean_charge_radas = ds["equilibrium_mean_charge_state"]

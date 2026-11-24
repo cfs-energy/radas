@@ -31,7 +31,7 @@ python = ">=3.12"
 numpy = "^2.4.4"
 scipy = "^1.17.1"
 matplotlib = "^3.10.8"
-pint = "^0.25.3"
+pint = ">=0.25.3"
 pyyaml = "^6.0.3"
 # Since xarray uses year.month.version, allow the "major" version to increase.
 xarray = ">=2026.2.0"
@@ -48,6 +48,8 @@ pytest-order = "^1.3.0"
 pytest-cov = "^7.1.0"
 coverage = "^7.13.5"
 ipdb = "^0.13.13"
+ruff = "^0.17.6"
+ty = "0.0.107"  # pinned: beta, diagnostics change between 0.0.x releases
 
 [build-system]
 requires = ["poetry-core>=2.0.0"]
@@ -60,3 +62,39 @@ markers = [
 addopts = "--cov=radas --cov-branch --cov-report term --cov-report xml:coverage.xml --import-mode=importlib"
 pythonpath = ["."]
 testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 140
+
+[tool.ruff.lint]
+select = [
+    "A", "B", "C4", "C901", "D", "E", "ERA", "F", "FLY",
+    "ISC", "PERF", "PIE", "PGH", "PL", "Q", "RUF", "T10",
+    "TCH", "UP", "W"
+]
+ignore = [
+    "E501",    # Line length handled by formatter
+    "PLR0913", # Allow more arguments in scientific functions
+    "PLR2004", # Magic values are common in physics constants
+    "C408",    # Allow dict() calls
+    "ISC001",  # Recommended ignore for ruff formatter
+    "I001",    # Explicitly ignored: algorithms must be imported in order
+    "B028",    # Warnings do not require stacklevel for this research code
+    "PLC0415", # Allow imports not at the top of the file
+]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 15
+
+[tool.ruff.lint.pyupgrade]
+keep-runtime-typing = true
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ty.environment]
+python-version = "3.12"
+
+[tool.ty.src]
+include = ["radas"]

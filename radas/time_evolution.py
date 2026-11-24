@@ -1,3 +1,5 @@
+"""Time evolution of charge-state fractions."""
+
 import numpy as np
 import xarray as xr
 from scipy.integrate import solve_ivp
@@ -25,9 +27,7 @@ def calculate_time_evolution(dataset: xr.Dataset) -> xr.Dataset:
         charge_state_fraction = np.zeros_like(effective_ionisation)
         charge_state_fraction[0] = 1.0
 
-        jacobian = calculate_jacobian(
-            effective_ionisation, effective_recombination, electron_density, ne_tau
-        )
+        jacobian = calculate_jacobian(effective_ionisation, effective_recombination, electron_density, ne_tau)
         source = np.zeros_like(charge_state_fraction)
         source[0] = electron_density / ne_tau
 
@@ -44,19 +44,23 @@ def calculate_time_evolution(dataset: xr.Dataset) -> xr.Dataset:
 
         return result.y
 
-    charge_state_fraction = xr.apply_ufunc(
-        _time_evolve,
-        magnitude_in_units(dataset.effective_ionisation, ureg.m**3 / ureg.s),
-        magnitude_in_units(
-            dataset.effective_recombination.roll(dim_charge_state=-1),
-            ureg.m**3 / ureg.s,
-        ),
-        magnitude_in_units(dataset.electron_density, ureg.m**-3),
-        magnitude_in_units(dataset.ne_tau, ureg.m**-3 * ureg.s),
-        vectorize=True,
-        input_core_dims=[("dim_charge_state",), ("dim_charge_state",), (), ()],
-        output_core_dims=[("dim_charge_state", "dim_time")],
-    ).assign_coords(dim_time=evaluation_times).pint.quantify("")
+    charge_state_fraction = (
+        xr.apply_ufunc(
+            _time_evolve,
+            magnitude_in_units(dataset.effective_ionisation, ureg.m**3 / ureg.s),
+            magnitude_in_units(
+                dataset.effective_recombination.roll(dim_charge_state=-1),
+                ureg.m**3 / ureg.s,
+            ),
+            magnitude_in_units(dataset.electron_density, ureg.m**-3),
+            magnitude_in_units(dataset.ne_tau, ureg.m**-3 * ureg.s),
+            vectorize=True,
+            input_core_dims=[("dim_charge_state",), ("dim_charge_state",), (), ()],
+            output_core_dims=[("dim_charge_state", "dim_time")],
+        )
+        .assign_coords(dim_time=evaluation_times)
+        .pint.quantify("")
+    )
 
     return charge_state_fraction
 
@@ -75,11 +79,7 @@ def calculate_jacobian(
     diagonal = -effective_ionisation - 1.0 / ne_tau
     diagonal[1:] -= effective_recombination[:-1]
 
-    return electron_density * (
-        np.diag(diagonal)
-        + np.diag(effective_ionisation[:-1], -1)
-        + np.diag(effective_recombination[:-1], +1)
-    )
+    return electron_density * (np.diag(diagonal) + np.diag(effective_ionisation[:-1], -1) + np.diag(effective_recombination[:-1], +1))
 
 
 def calculate_source(electron_density, ne_tau, n_charge_states):
