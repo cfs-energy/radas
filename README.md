@@ -49,6 +49,8 @@ where `--species` can be
 * `all` which runs all species which have available data
 * `none` which only regenerates the output plots from existing NetCDF files
 
+Add `--time-evolution` to also store the charge-state fractions as a function of time (`charge_state_evolution`, from `evolution_start` to `evolution_stop`). It is off by default because it is slow and the equilibrium does not need it.
+
 If anything goes wrong, the script will drop into an `ipdb` interpreter so you can debug any issues. 
 
 #### What's going on under the hood?
@@ -60,8 +62,8 @@ The above snippet executes `run_radas_cli` in `radas/cli.py`, which performs the
 5. Process the downloaded data files and store them in xarray Dataset (in `read_rate_coeffs.py`).
 6. Calculate the fractional abundance of each charge state according to the coronal approximation (in `coronal_equilibrium.py`).
 7. Calculate the coronal mean charge ($\langle Z \rangle$) and radiated power coefficient ($L_z$) as a function of the plasma temperature and density (in `cli.py` for the mean charge and in `radiated_power.py` for the radiated power).
-8. Time-integrate equations for the abundance of each charge state to give the fractional abundance as a function of time $n_z(t)$ for different refuelling rates (characterized by $n_e \tau$ where $\tau$ is a particle residence time, in `time_evolution.py`).
-9. Calculate the equilibrium ($t \to \infty$) mean charge ($\langle Z \rangle$) and radiated power coefficient ($L_z$) as a function of the plasma temperature and density (reusing the same functions as for the coronal values).
+8. Solve the rate equations for the abundance of each charge state directly for the equilibrium ($t \to \infty$) fractional abundance, for different refuelling rates (characterized by $n_e \tau$ where $\tau$ is a particle residence time, in `steady_state.py`; $n_e \tau = \infty$ gives the coronal limit). With `--time-evolution`, the same equations are also time-integrated to give $n_z(t)$ (in `time_evolution.py`).
+9. Calculate the equilibrium mean charge ($\langle Z \rangle$) and radiated power coefficient ($L_z$) as a function of the plasma temperature and density (reusing the same functions as for the coronal values).
 10. Store all of the results in a NetCDF in the `output` folder and make a figure comparing the computed curves to data from *Mavrin, J. Fus. Eng., 2017* (where available).
 
 ### Configuration

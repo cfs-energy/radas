@@ -119,7 +119,8 @@ jobs:
   test_radas:
     name: Test radas command
     runs-on: ubuntu-latest
-    if: (github.event_name == 'release' || github.event_name == 'workflow_dispatch')
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@v5
@@ -135,6 +136,14 @@ jobs:
 
       - name: Install dependencies
         run: poetry install
+
+      # The downloaded OpenADAS files are determined by config.yaml (species and years), and the
+      # downloader reuses files that already exist, so key the cache on that file alone.
+      - name: Cache OpenADAS data files
+        uses: actions/cache@v5
+        with:
+          path: ./radas_dir/data_files
+          key: radas-data-files-${{ hashFiles('radas/config.yaml') }}
 
       - name: Run radas command
         run: poetry run radas -vvv
