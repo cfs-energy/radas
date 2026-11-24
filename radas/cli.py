@@ -59,6 +59,7 @@ def run_radas_cli(
     species: Sequence[str],
     verbose: int,
     debug: bool,
+    *,
     time_evolution: bool,
 ):
     """Runs the radas program.
@@ -109,6 +110,7 @@ def _compute_datasets(
     output_dir: Path,
     verbose: int,
     debug: bool,
+    *,
     time_evolution: bool,
 ):
     """Run the radas computation for each dataset, in parallel unless debugging."""
@@ -137,6 +139,7 @@ def run_radas(
     species: Sequence[str],
     verbose: int,
     debug: bool,
+    *,
     time_evolution: bool = False,
 ):
     """Download the OpenADAS data for the requested species, compute radiated power curves and write the outputs."""
@@ -177,7 +180,7 @@ def run_radas(
         }
 
         output_dir.mkdir(exist_ok=True, parents=True)
-        _compute_datasets(datasets, species, output_dir, verbose, debug, time_evolution)
+        _compute_datasets(datasets, species, output_dir, verbose, debug, time_evolution=time_evolution)
 
     if verbose:
         print(f"Generating plots and saving output to {output_dir}")
@@ -187,7 +190,7 @@ def run_radas(
         print("Done")
 
 
-def run_radas_computation(dataset: xr.Dataset, output_dir: Path, verbose: int, time_evolution: bool = False):
+def run_radas_computation(dataset: xr.Dataset, output_dir: Path, verbose: int, *, time_evolution: bool = False):
     """Calculate several dependent quantities based on the atomic rates, and store the result as a NetCDF file.
 
     The equilibrium is solved for directly; time_evolution also stores the (slow) time history.
@@ -202,7 +205,9 @@ def run_radas_computation(dataset: xr.Dataset, output_dir: Path, verbose: int, t
     if time_evolution:
         dataset["charge_state_evolution"] = calculate_time_evolution(dataset)
     dataset["equilibrium_charge_state_fraction"] = calculate_steady_state_fractional_abundances(dataset)
-    dataset["equilibrium_mean_charge_state"] = (dataset.equilibrium_charge_state_fraction * dataset.dim_charge_state).sum(dim="dim_charge_state")
+    dataset["equilibrium_mean_charge_state"] = (dataset.equilibrium_charge_state_fraction * dataset.dim_charge_state).sum(
+        dim="dim_charge_state"
+    )
     dataset["equilibrium_Lz"] = calculate_Lz(dataset, dataset.equilibrium_charge_state_fraction)
 
     output_dir.mkdir(exist_ok=True)
