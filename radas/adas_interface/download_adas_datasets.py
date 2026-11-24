@@ -5,6 +5,12 @@ import urllib.request
 from .determine_adas_dataset_type import determine_reader_class_and_config
 
 
+def is_complete(filename: Path) -> bool:
+    """Whether an ADAS file ends with the footer OPEN-ADAS appends, which a truncated download lacks."""
+    text = filename.read_text(errors="replace").rstrip()
+    return "downloaded from OPEN-ADAS" in text and text.rpartition("\n")[2].startswith("C---")
+
+
 def download_species_data(  # noqa: PLR0917 - verbose and url_base are part of the public positional signature
     data_file_dir: Path,
     species_name: str,
@@ -34,6 +40,9 @@ def download_species_data(  # noqa: PLR0917 - verbose and url_base are part of t
         output_filename = data_file_dir / f"{species_name}_{dataset_type}_{year_key}.dat"
         query_path = f"{url_base}/download/{reader_class}/{dataset_prefix}{year_key}/{dataset_prefix}{year_key}_{species_key}.dat"
 
+        if output_filename.exists() and not is_complete(output_filename):  # left by an interrupted download (or an error page)
+            output_filename.unlink()
+
         if not output_filename.exists():
             if verbose >= 2:
                 print(f"Downloading {query_path} to {output_filename}")
@@ -45,3 +54,6 @@ def download_species_data(  # noqa: PLR0917 - verbose and url_base are part of t
             output_filename.unlink()
             if verbose:
                 print(f"Failed to download the {year} {dataset_prefix} for {species_name}")
+        elif not is_complete(output_filename):
+            output_filename.unlink()
+            raise RuntimeError(f"Downloaded {query_path} is incomplete; removed it. Try again.")
