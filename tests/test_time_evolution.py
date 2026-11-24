@@ -13,6 +13,6 @@ def test_linear_rhs_matches_fsum_away_from_equilibrium():
     ne, ne_tau = 1e19, 1e17
     fraction = rng.dirichlet(np.ones(8))
 
-    linear = derivative_linear(0.0, fraction, ionisation, recombination, ne, ne_tau)
-    precise = derivative_fsum(0.0, fraction, ionisation, recombination, ne, ne_tau)
+    linear = derivative_linear(fraction, ionisation, recombination, ne, ne_tau)
+    precise = derivative_fsum(fraction, ionisation, recombination, ne, ne_tau)
     np.testing.assert_allclose(linear, precise, rtol=1e-12, atol=0.0)

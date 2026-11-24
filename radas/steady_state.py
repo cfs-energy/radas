@@ -27,7 +27,7 @@ def calculate_steady_state_fractional_abundances(dataset: xr.Dataset) -> xr.Data
 
 
 def steady_state(effective_ionisation, effective_recombination, ne_tau=np.inf):
-    """Solve d/dt = 0 for the system of calculate_derivative, assuming the fully stripped state cannot ionise.
+    """Solve d/dt = 0 for the rate equations in time_evolution.py (dy/dt = J @ y + b), assuming the fully stripped state cannot ionise.
 
     The tridiagonal system is eliminated from the top charge state down without subtractions (the
     Grassmann-Taksar-Heyman form of Gaussian elimination), since the plain Thomas algorithm cancels
@@ -38,14 +38,12 @@ def steady_state(effective_ionisation, effective_recombination, ne_tau=np.inf):
     loss = 1.0 / ne_tau
     # outflow = rate out of state i+1 other than recombination to i, per unit fraction of state i+1
     outflow = loss
-    log_fraction = np.zeros(effective_ionisation.size)
+    rate_down = np.zeros(effective_ionisation.size - 1)
     for i in range(effective_ionisation.size - 2, -1, -1):
-        rate_down = effective_recombination[i] + outflow
-        log_fraction[i + 1] = np.log(effective_ionisation[i]) - np.log(rate_down)
-        outflow = loss + effective_ionisation[i] * outflow / rate_down
+        rate_down[i] = effective_recombination[i] + outflow
+        outflow = loss + effective_ionisation[i] * outflow / rate_down[i]
+    log_ratio = (np.log(effective_ionisation[:-1]) - np.log(rate_down)).tolist()
     # math.fsum gives correctly rounded sums, so accuracy does not degrade with the number of charge states.
-    log_fraction = np.array(
-        [math.fsum(log_fraction[: i + 1]) for i in range(log_fraction.size)]
-    )
+    log_fraction = np.array([0.0] + [math.fsum(log_ratio[: i + 1]) for i in range(len(log_ratio))])
     fraction = np.exp(log_fraction - log_fraction.max())
-    return fraction / math.fsum(fraction)
+    return fraction / math.fsum(fraction.tolist())

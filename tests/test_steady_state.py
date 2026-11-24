@@ -131,7 +131,7 @@ def test_steady_state_has_zero_time_evolution_derivative(ne_tau):
         for _ in range(5):
             ionisation, recombination = random_rates(rng, n)
             fraction = steady_state(ionisation, recombination, ne_tau)
-            derivative = derivative_fsum(0.0, fraction, ionisation, recombination, 1.0, ne_tau)
+            derivative = derivative_fsum(fraction, ionisation, recombination, 1.0, ne_tau)
             scale = cancellation_scale(fraction, ionisation, recombination, ne_tau)
             assert np.all(np.abs(derivative) <= 1e-10 * np.maximum(scale, 1e-300))
 
@@ -149,6 +149,7 @@ def test_steady_state_matches_converged_time_evolution(n):
 
     # assert_allclose treats NaN as equal to NaN, so check the inputs are sane first.
     assert np.all(np.isfinite(evolved)) and np.all(np.isfinite(direct))
+    np.testing.assert_allclose(evolved.sum(axis=-1), 1.0, rtol=1e-6)
     np.testing.assert_allclose(direct.sum(axis=-1), 1.0, rtol=1e-12)
     # The solver tolerance is rtol=1e-3 per step, but the converged state agrees far better; the floor is for rare states.
     np.testing.assert_allclose(evolved, direct, rtol=1e-6, atol=1e-12)

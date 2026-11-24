@@ -24,12 +24,12 @@ def rate_equation_terms(y, ionisation, recombination, ne_tau):
     return terms
 
 
-def derivative_fsum(_, y, ionisation, recombination, electron_density, ne_tau=np.inf):
+def derivative_fsum(y, ionisation, recombination, electron_density, ne_tau):
     """High-precision term sum using math.fsum (order-independent correctly rounded sum)."""
     return electron_density * np.array([math.fsum(terms) for terms in rate_equation_terms(y, ionisation, recombination, ne_tau)])
 
 
-def derivative_linear(_, y, ionisation, recombination, electron_density, ne_tau=np.inf):
+def derivative_linear(y, ionisation, recombination, electron_density, ne_tau):
     """Fast right-hand side: J @ y + b."""
     jacobian = calculate_jacobian(ionisation, recombination, electron_density, ne_tau)
     return jacobian @ y + calculate_source(electron_density, ne_tau, len(y))

@@ -28,8 +28,7 @@ def calculate_time_evolution(dataset: xr.Dataset) -> xr.Dataset:
         charge_state_fraction[0] = 1.0
 
         jacobian = calculate_jacobian(effective_ionisation, effective_recombination, electron_density, ne_tau)
-        source = np.zeros_like(charge_state_fraction)
-        source[0] = electron_density / ne_tau
+        source = calculate_source(electron_density, ne_tau, len(charge_state_fraction))
 
         result = solve_ivp(
             lambda _t, y: jacobian @ y + source,
@@ -69,12 +68,15 @@ def calculate_jacobian(
     effective_ionisation,
     effective_recombination,
     electron_density,
-    ne_tau=np.inf,
+    ne_tau,
 ):
     """Jacobian of dy/dt = J @ y + b for the charge-state rate equations.
 
     The system is linear, so this is constant in time and tridiagonal. Index k is the
     charge state: ionisation connects k -> k+1, recombination connects k+1 -> k.
+    It assumes the fully stripped state cannot ionise (effective_ionisation[-1] == 0, which
+    align_rates_on_charge_states guarantees by padding with zero); otherwise the last diagonal
+    entry loses particles that never reach a higher state.
     """
     diagonal = -effective_ionisation - 1.0 / ne_tau
     diagonal[1:] -= effective_recombination[:-1]
