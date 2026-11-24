@@ -140,7 +140,7 @@ jobs:
       # The downloaded OpenADAS files are determined by config.yaml (species and years), and the
       # downloader reuses files that already exist, so key the cache on that file alone.
       - name: Cache OpenADAS data files
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ./radas_dir/data_files
           key: radas-data-files-${{ hashFiles('radas/config.yaml') }}
