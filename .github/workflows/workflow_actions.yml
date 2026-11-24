@@ -7,7 +7,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-  # Re-test the committed lock. schedule fires only from the default branch.
+  # Weekly pytest re-resolves within pyproject ranges. schedule fires only from the default branch.
   schedule:
     - cron: "17 12 * * 1"
   workflow_dispatch:
@@ -48,8 +48,17 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: 'poetry'
 
-      - name: Install dependencies
+      - name: Install locked dependencies
+        if: github.event_name != 'schedule'
         run: poetry install --with dev
+
+      # The wheel smoke test re-resolves on its own. Weekly pytest does too,
+      # so the suite runs against current releases inside the declared ranges.
+      - name: Re-resolve dependencies
+        if: github.event_name == 'schedule'
+        run: |
+          poetry --no-interaction update --with dev
+          poetry show --top-level --with dev --no-truncate
 
       - name: Run Pytest
         run: poetry run pytest --cov-fail-under=81  # the coverage floor is enforced in CI only, so partial local runs pass
