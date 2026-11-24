@@ -1,6 +1,5 @@
 import numpy as np
 import xarray as xr
-from numba import njit
 from scipy.integrate import solve_ivp
 from .unit_handling import ureg, magnitude_in_units
 
@@ -10,7 +9,7 @@ def calculate_time_evolution(dataset: xr.Dataset) -> xr.Dataset:
 
     The equations are stiff, so we need to use "BDF", "Radau" or "LSODA" as the solver method. The rates are
     constant in time, so the exact (tridiagonal) Jacobian is supplied; LSODA with this Jacobian is much faster
-    than Radau, at the same accuracy.
+    than Radau, at the same accuracy. The system is linear, so the right-hand side is J @ y + b.
     """
     evaluation_times = np.logspace(
         np.log10(magnitude_in_units(dataset.evolution_start, ureg.s)).item(),
@@ -29,18 +28,14 @@ def calculate_time_evolution(dataset: xr.Dataset) -> xr.Dataset:
         jacobian = calculate_jacobian(
             effective_ionisation, effective_recombination, electron_density, ne_tau
         )
+        source = np.zeros_like(charge_state_fraction)
+        source[0] = electron_density / ne_tau
 
         result = solve_ivp(
-            calculate_derivative,
+            lambda _t, y: jacobian @ y + source,
             y0=charge_state_fraction,
             t_span=[evaluation_times[0], evaluation_times[-1]],
             t_eval=evaluation_times,
-            args=(
-                effective_ionisation,
-                effective_recombination,
-                electron_density,
-                ne_tau,
-            ),
             method="LSODA",
             jac=lambda *_: jacobian,
             rtol=1e-3,
@@ -66,70 +61,19 @@ def calculate_time_evolution(dataset: xr.Dataset) -> xr.Dataset:
     return charge_state_fraction
 
 
-@njit
-def shift(arr, num, fill_value=0.0):
-    result = np.empty_like(arr)
-    if num > 0:
-        result[:num] = fill_value
-        result[num:] = arr[:-num]
-    elif num < 0:
-        result[num:] = fill_value
-        result[:num] = arr[-num:]
-    else:
-        result[:] = arr
-    return result
-
-
-@njit
-def calculate_derivative(
-    _,
-    charge_state_fraction: np.ndarray,
-    effective_ionisation,
-    effective_recombination,
-    electron_density,
-    ne_tau=np.inf,
-):
-    """Calculate the the partial derivative of the impurity density w.r.t. time.
-
-    A compensated sum is used to reduce the risk of truncation. The function is compiled with numba, so this is cheap.
-
-    The default option is for a non-refuelled impurity. If you set a ne_tau, it is assumed that the ground state is
-    constantly refuelled at a rate of 1 / ne_tau and that the excited states
-    are lost at a rate proportional to their concentration.
-    """
-    ionisation_to_above = effective_ionisation * charge_state_fraction
-    ionisation_from_below = shift(effective_ionisation * charge_state_fraction, +1)
-
-    recombination_from_above = effective_recombination * shift(
-        charge_state_fraction, -1
-    )
-    recombination_to_below = shift(effective_recombination, +1) * charge_state_fraction
-
-    change_in_charge_state_fraction = np.zeros_like(charge_state_fraction)
-    for i in range(len(change_in_charge_state_fraction)):
-        change_in_charge_state_fraction[i] = kahan_babushka_neumaier_sum(
-            [
-                -ionisation_to_above[i],
-                ionisation_from_below[i],
-                recombination_from_above[i],
-                -recombination_to_below[i],
-            ]
-        )
-
-    change_in_charge_state_fraction -= charge_state_fraction / ne_tau
-    change_in_charge_state_fraction[0] += 1.0 / ne_tau
-
-    return change_in_charge_state_fraction * electron_density
-
-
 def calculate_jacobian(
     effective_ionisation,
     effective_recombination,
     electron_density,
     ne_tau=np.inf,
 ):
-    """Jacobian of calculate_derivative. The system is linear, so this is constant in time and tridiagonal."""
-    diagonal = -effective_ionisation - shift(effective_recombination, +1) - 1.0 / ne_tau
+    """Jacobian of dy/dt = J @ y + b for the charge-state rate equations.
+
+    The system is linear, so this is constant in time and tridiagonal. Index k is the
+    charge state: ionisation connects k -> k+1, recombination connects k+1 -> k.
+    """
+    diagonal = -effective_ionisation - 1.0 / ne_tau
+    diagonal[1:] -= effective_recombination[:-1]
 
     return electron_density * (
         np.diag(diagonal)
@@ -138,20 +82,8 @@ def calculate_jacobian(
     )
 
 
-@njit
-def kahan_babushka_neumaier_sum(values_to_sum):
-    """Improved Kahan compensated summation algorithm."""
-    running_sum = 0.0
-    compensation = 0.0
-
-    for value in values_to_sum:
-        temporary_sum = running_sum + value
-
-        if running_sum >= value:
-            compensation += running_sum - temporary_sum + value
-        else:
-            compensation += value - temporary_sum + running_sum
-
-        running_sum = temporary_sum
-
-    return running_sum + compensation
+def calculate_source(electron_density, ne_tau, n_charge_states):
+    """Inhomogeneous term b in dy/dt = J @ y + b (ground-state refuelling)."""
+    source = np.zeros(n_charge_states)
+    source[0] = electron_density / ne_tau
+    return source
