@@ -4,12 +4,8 @@ Since radas builds the fortran interface inside the library, we
 make a separate copy of the radas library to test it cleanly.
 """
 
-import os
 import pytest
 from pathlib import Path
-
-# Set before numba is imported (by radas): coverage cannot trace compiled code. CI also runs the compiled tests.
-os.environ.setdefault("NUMBA_DISABLE_JIT", "1")
 
 
 @pytest.fixture(scope="session")
