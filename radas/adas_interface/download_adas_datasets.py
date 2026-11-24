@@ -1,9 +1,11 @@
+"""Download OpenADAS data files."""
+
 from pathlib import Path
 import urllib.request
 from .determine_adas_dataset_type import determine_reader_class_and_config
 
 
-def download_species_data(
+def download_species_data(  # noqa: PLR0917 - verbose and url_base are part of the public positional signature
     data_file_dir: Path,
     species_name: str,
     species_config: dict,
@@ -15,10 +17,7 @@ def download_species_data(
     data_file_dir.mkdir(exist_ok=True, parents=True)
 
     for dataset_type, file_to_download in species_config["data_files"].items():
-
-        reader_class, dataset_config = determine_reader_class_and_config(
-            data_file_config, dataset_type
-        )
+        reader_class, dataset_config = determine_reader_class_and_config(data_file_config, dataset_type)
 
         if isinstance(file_to_download, int):
             species_key = species_config["atomic_symbol"].lower()
@@ -39,13 +38,10 @@ def download_species_data(
             if verbose >= 2:
                 print(f"Downloading {query_path} to {output_filename}")
             urllib.request.urlretrieve(query_path, output_filename)
-        else:
-            if verbose >= 2:
-                print(f"Reusing {query_path} ({output_filename} already exists)")
+        elif verbose >= 2:
+            print(f"Reusing {query_path} ({output_filename} already exists)")
 
         if "OPEN-ADAS Error" in output_filename.read_text():
             output_filename.unlink()
             if verbose:
-                print(
-                    f"Failed to download the {year} {dataset_prefix} for {species_name}"
-                )
+                print(f"Failed to download the {year} {dataset_prefix} for {species_name}")

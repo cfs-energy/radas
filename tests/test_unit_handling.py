@@ -1,3 +1,4 @@
+# ruff: noqa: D103
 """Simple tests to make sure that the unit handling is working as expected."""
 
 import pytest
@@ -25,23 +26,17 @@ def test_invalid_conversion():
         Quantity(1.2, ureg.m).to(ureg.W)
 
 
-@pytest.mark.filterwarnings(
-    "ignore:The unit of the quantity is stripped when downcasting to ndarray."
-)
+@pytest.mark.filterwarnings("ignore:The unit of the quantity is stripped when downcasting to ndarray.")
 def test_convert_units():
 
     values = Quantity([1.2, 2.4], ureg.m)
-    assert np.allclose(
-        convert_units(values, ureg.cm).magnitude, values.magnitude * 100.0
-    )
+    assert np.allclose(convert_units(values, ureg.cm).magnitude, values.magnitude * 100.0)
 
     values = xr.DataArray(Quantity([1.2, 2.4], ureg.m))
     assert np.allclose(convert_units(values, ureg.cm).values, values.values * 100.0)
 
     values = xr.DataArray([1.2, 2.4])
-    assert np.allclose(
-        convert_units(values, ureg.percent).values, values.values * 100.0
-    )
+    assert np.allclose(convert_units(values, ureg.percent).values, values.values * 100.0)
 
     with pytest.raises(NotImplementedError):
         values = [1.2, 2.4]
@@ -51,19 +46,13 @@ def test_convert_units():
 @pytest.mark.filterwarnings("error")
 def test_magnitude():
     values = Quantity([1.2, 2.4], ureg.m)
-    assert np.allclose(
-        magnitude(convert_units(values, ureg.cm)), magnitude(values) * 100.0
-    )
+    assert np.allclose(magnitude(convert_units(values, ureg.cm)), magnitude(values) * 100.0)
 
     values = xr.DataArray(Quantity([1.2, 2.4], ureg.m))
-    assert np.allclose(
-        magnitude(convert_units(values, ureg.cm)), magnitude(values) * 100.0
-    )
+    assert np.allclose(magnitude(convert_units(values, ureg.cm)), magnitude(values) * 100.0)
 
     values = xr.DataArray([1.2, 2.4])
-    assert np.allclose(
-        magnitude(convert_units(values, ureg.percent)), magnitude(values) * 100.0
-    )
+    assert np.allclose(magnitude(convert_units(values, ureg.percent)), magnitude(values) * 100.0)
 
     with pytest.raises(NotImplementedError):
         values = [1.2, 2.4]

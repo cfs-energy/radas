@@ -7,7 +7,14 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  # Weekly pytest re-resolves within pyproject ranges. schedule fires only from the default branch.
+  schedule:
+    - cron: "17 12 * * 1"
   workflow_dispatch:
+
+# Least privilege by default; jobs that need more (publish) declare their own permissions.
+permissions:
+  contents: read
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -41,11 +48,20 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: 'poetry'
 
-      - name: Install dependencies
+      - name: Install locked dependencies
+        if: github.event_name != 'schedule'
         run: poetry install --with dev
 
+      # The wheel smoke test re-resolves on its own. Weekly pytest does too,
+      # so the suite runs against current releases inside the declared ranges.
+      - name: Re-resolve dependencies
+        if: github.event_name == 'schedule'
+        run: |
+          poetry --no-interaction update --with dev
+          poetry show --top-level --with dev --no-truncate
+
       - name: Run Pytest
-        run: poetry run pytest
+        run: poetry run pytest --cov-fail-under=81  # the coverage floor is enforced in CI only, so partial local runs pass
 
       - name: Smoke test package installation
         run: |
@@ -56,14 +72,55 @@ jobs:
           radas_config -o ./new_config.yaml
           radas -s hydrogen -c ./new_config.yaml
   
-  # --- JOB 2: RUN RADAS COMMAND, CHECK IT WORKS WITH DEFAULT CONFIG ---
+  # --- JOB 2: LINT & TYPE CHECK ---
+  lint:
+    name: Lint and type check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install Poetry
+        run: pipx install "poetry>=2,<3"
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'poetry'
+
+      - name: Install dependencies
+        run: poetry install --with dev
+
+      - name: Ruff check
+        run: poetry run ruff check radas tests
+
+      - name: Ruff format
+        run: poetry run ruff format --check radas tests
+
+      - name: Type check
+        run: poetry run ty check
+
+  # --- DEPENDENCY REVIEW: FAIL PRS THAT ADD OR BUMP A VULNERABLE DEPENDENCY ---
+  # Pull requests only, and deliberately not in build_release's needs: a skipped job would skip the release.
+  dependency_review:
+    name: Dependency review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/dependency-review-action@v5
+        with:
+          fail-on-severity: moderate
+
+  # --- JOB 3: RUN RADAS COMMAND, CHECK IT WORKS WITH DEFAULT CONFIG ---
   test_radas:
     name: Test radas command
     runs-on: ubuntu-latest
     if: (github.event_name == 'release' || github.event_name == 'workflow_dispatch')
-    permissions:
-      contents: write
-    
+
     steps:
       - uses: actions/checkout@v5
 
@@ -82,10 +139,10 @@ jobs:
       - name: Run radas command
         run: poetry run radas -vvv
       
-  # --- JOB 3: BUILD RELEASE ARTIFACTS ---
+  # --- JOB 4: BUILD RELEASE ARTIFACTS ---
   build_release:
     name: Build Release
-    needs: [pytest, test_radas]
+    needs: [pytest, lint, test_radas]
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
     steps:
@@ -104,7 +161,7 @@ jobs:
           path: dist/
           retention-days: 1
 
-  # --- JOB 4: PUBLISH TO PYPI ---
+  # --- JOB 5: PUBLISH TO PYPI ---
   publish:
     name: Publish to PyPI
     needs: build_release

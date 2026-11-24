@@ -1,3 +1,5 @@
+"""Comparison of radas results to the Mavrin polynomial fits."""
+
 from .compare_to_mavrin import (
     compare_radas_to_mavrin,
     compare_radas_to_mavrin_per_species,

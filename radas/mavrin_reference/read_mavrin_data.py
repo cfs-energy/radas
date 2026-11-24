@@ -1,3 +1,5 @@
+"""Read the Mavrin polynomial-fit coefficients."""
+
 import xarray as xr
 import numpy as np
 import warnings
@@ -5,9 +7,9 @@ from ..unit_handling import ureg, convert_units, magnitude
 
 
 def read_mavrin_data():
+    """Open the Mavrin dataset from a yaml file."""
     from ..shared import open_yaml_file, mavrin_data_file
 
-    "Opens the Mavrin dataset from a yaml file."
     return open_yaml_file(mavrin_data_file)
 
 
@@ -22,18 +24,14 @@ def compute_Mavrin_polynomial_fit(Te_eV, ne_tau_s_per_m3, coeff):
     )
 
 
-def compute_Mavrin_polynomial_fit_single(
-    Te_eV, ne_tau_s_per_m3, coeff, warn: bool = False
-):
+def compute_Mavrin_polynomial_fit_single(Te_eV, ne_tau_s_per_m3, coeff, warn: bool = False):
     """Inner loop for computing the Lz or mean_charge polynomial fit from Mavrin, J. Fus. Eng., 2017."""
     Tmin_eV = coeff["Tmin_eV"]
     Tmax_eV = coeff["Tmax_eV"]
 
     if not Tmin_eV[0] <= Te_eV <= Tmax_eV[-1]:
         if warn:
-            warnings.warn(
-                f"{Te_eV}eV outside fitted range {Tmin_eV[0]}eV to {Tmax_eV[-1]}eV"
-            )
+            warnings.warn(f"{Te_eV}eV outside fitted range {Tmin_eV[0]}eV to {Tmax_eV[-1]}eV")
         return np.nan
     if ne_tau_s_per_m3 < 1e15:
         if warn:
@@ -43,9 +41,7 @@ def compute_Mavrin_polynomial_fit_single(
     X = np.log10(Te_eV)
     Y = np.log10(ne_tau_s_per_m3 / 1e19)
     if warn and (Y > 0.0):
-        warnings.warn(
-            "Warning: treating points with ne_tau_s_per_m3 > 1e19 m^-3 s as coronal."
-        )
+        warnings.warn("Warning: treating points with ne_tau_s_per_m3 > 1e19 m^-3 s as coronal.")
     Y = np.minimum(Y, 0.0)
 
     N_bins = len(Tmin_eV)
