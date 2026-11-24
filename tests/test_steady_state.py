@@ -11,7 +11,8 @@ from radas import Quantity, run_radas_computation
 from radas.cli import run_radas_cli
 from radas.read_rate_coeffs import write_global_attributes
 from radas.steady_state import calculate_steady_state_fractional_abundances, steady_state
-from radas.time_evolution import calculate_derivative, calculate_time_evolution, shift
+from radas.time_evolution import calculate_time_evolution
+from tests.rate_equation_rhs import cancellation_scale, derivative_fsum
 
 
 def exact_steady_state(ionisation, recombination, ne_tau):
@@ -130,14 +131,8 @@ def test_steady_state_has_zero_time_evolution_derivative(ne_tau):
         for _ in range(5):
             ionisation, recombination = random_rates(rng, n)
             fraction = steady_state(ionisation, recombination, ne_tau)
-            derivative = calculate_derivative(0.0, fraction, ionisation, recombination, 1.0, ne_tau)
-            scale = (
-                ionisation * fraction
-                + shift(ionisation * fraction, +1)
-                + recombination * shift(fraction, -1)
-                + shift(recombination, +1) * fraction
-                + fraction / ne_tau
-            )
+            derivative = derivative_fsum(0.0, fraction, ionisation, recombination, 1.0, ne_tau)
+            scale = cancellation_scale(fraction, ionisation, recombination, ne_tau)
             assert np.all(np.abs(derivative) <= 1e-10 * np.maximum(scale, 1e-300))
 
 

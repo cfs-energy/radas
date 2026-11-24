@@ -1,8 +1,9 @@
 """Direct solve for the equilibrium charge-state fractions."""
 
+import math
+
 import numpy as np
 import xarray as xr
-from numba import njit
 from .unit_handling import ureg, magnitude_in_units
 
 
@@ -25,7 +26,6 @@ def calculate_steady_state_fractional_abundances(dataset: xr.Dataset) -> xr.Data
     ).pint.quantify("")
 
 
-@njit
 def steady_state(effective_ionisation, effective_recombination, ne_tau=np.inf):
     """Solve d/dt = 0 for the system of calculate_derivative, assuming the fully stripped state cannot ionise.
 
@@ -43,6 +43,9 @@ def steady_state(effective_ionisation, effective_recombination, ne_tau=np.inf):
         rate_down = effective_recombination[i] + outflow
         log_fraction[i + 1] = np.log(effective_ionisation[i]) - np.log(rate_down)
         outflow = loss + effective_ionisation[i] * outflow / rate_down
-    log_fraction = np.cumsum(log_fraction)
+    # math.fsum gives correctly rounded sums, so accuracy does not degrade with the number of charge states.
+    log_fraction = np.array(
+        [math.fsum(log_fraction[: i + 1]) for i in range(log_fraction.size)]
+    )
     fraction = np.exp(log_fraction - log_fraction.max())
-    return fraction / fraction.sum()
+    return fraction / math.fsum(fraction)
